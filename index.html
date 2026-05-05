@@ -1,0 +1,3781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TOME</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&family=Playfair+Display:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    /* ── Global Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      /* TOME System Colors */
+      --tome-black: #050508;
+      --tome-dark: #0a0a12;
+      --tome-mid: #12121e;
+      --tome-surface: #1a1a2e;
+      --tome-gold: #c8a84b;
+      --tome-gold-light: #e8c96a;
+      --tome-gold-dim: #6b5520;
+      --tome-cyan: #00d4ff;
+      --tome-cyan-dim: #004455;
+      --tome-white: #e8e8f0;
+      --tome-muted: #5a5a7a;
+      
+      /* Blackjack Colors */
+      --felt: #1a5c2e;
+      --felt-dark: #0f3d1e;
+      --felt-light: #226b36;
+      --bj-gold: #c8a84b;
+      --bj-gold-light: #e8c96a;
+      --bj-gold-dark: #9a7a2a;
+      --bj-red: #c0392b;
+      --bj-red-light: #e74c3c;
+      --cream: #f5f0e8;
+      --text-muted: #a8c5b0;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--tome-black);
+      color: var(--tome-white);
+      font-family: 'Rajdhani', sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Screen System ── */
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+    .screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+    }
+    .screen.slide-left {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .screen.slide-right {
+      transform: translateX(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+  
+  /* ══ CHAMELEON GAME ══ */
+  @keyframes dealBtnPulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(45,107,198,0.5); }
+    50% { box-shadow: 0 4px 32px rgba(45,107,198,0.8); }
+  }
+  @keyframes chamBtnPulse {
+    0%,100% { box-shadow: 0 4px 16px rgba(45,198,83,0.4); }
+    50% { box-shadow: 0 4px 28px rgba(45,198,83,0.7); }
+  }
+  /* ══════════════════════════════════════
+       CHAMELEON GAME — Jungle / Apple Design
+     ══════════════════════════════════════ */
+  #screen-chameleon {
+    background: linear-gradient(160deg, #071a07 0%, #0d2e10 40%, #112a10 70%, #081808 100%);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #screen-chameleon .bj-header {
+    background: rgba(7,26,7,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 0.5px solid rgba(0,255,0,0.12);
+  }
+  #screen-chameleon .bj-title { color: #4cd964; }
+  #screen-chameleon .bj-back { color: #4cd964; }
+
+  /* Chameleon avatar next to headings */
+  .cham-avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
+    margin-right: 8px;
+    filter: drop-shadow(0 1px 4px rgba(76,217,100,0.5));
+  }
+  .cham-heading-row {
+    display: flex; align-items: center;
+    margin-bottom: 0.25rem;
+  }
+
+  /* Setup card */
+  .cham-glass-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 1.4rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 0.5px 0 rgba(255,255,255,0.08);
+  }
+  .cham-hero {
+    display: flex; align-items: center; gap: 1rem;
+    padding: 1rem 0 1.2rem;
+  }
+  .cham-hero-img {
+    width: 80px; height: 80px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 12px rgba(76,217,100,0.4));
+    flex-shrink: 0;
+  }
+  .cham-hero-text h2 {
+    font-size: 1.4rem; font-weight: 700;
+    color: #fff; margin: 0 0 0.3rem;
+    letter-spacing: -0.02em;
+  }
+  .cham-hero-text p {
+    font-size: 0.85rem; color: rgba(255,255,255,0.55);
+    margin: 0; line-height: 1.5;
+  }
+  .cham-section-label {
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(76,217,100,0.7);
+    margin-bottom: 0.5rem; margin-top: 1rem;
+  }
+  .cham-player-count-row {
+    display: flex; align-items: center; gap: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .cham-count-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1.5px solid rgba(76,217,100,0.4);
+    background: rgba(76,217,100,0.08);
+    color: #4cd964; font-size: 1.3rem;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cham-count-btn:active { transform: scale(0.92); background: rgba(76,217,100,0.18); }
+  .cham-count-display {
+    font-size: 2rem; font-weight: 700;
+    color: #fff; min-width: 2rem; text-align: center;
+  }
+  .cham-name-input {
+    width: 100%; background: rgba(255,255,255,0.07);
+    border: 0.5px solid rgba(255,255,255,0.15);
+    border-radius: 10px; color: #fff;
+    font-family: inherit; font-size: 0.95rem;
+    padding: 0.6rem 0.9rem; margin-bottom: 0.5rem;
+    box-sizing: border-box; outline: none;
+    transition: border-color 0.15s;
+  }
+  .cham-name-input:focus { border-color: rgba(76,217,100,0.5); }
+  .cham-name-input::placeholder { color: rgba(255,255,255,0.3); }
+  .cham-toggle-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.9rem; color: rgba(255,255,255,0.75);
+  }
+  .cham-start-btn {
+    width: 100%; margin-top: 1.2rem;
+    padding: 0.9rem; border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1a6b2e, #4cd964 50%, #1a6b2e);
+    color: #fff; font-family: inherit;
+    font-size: 1rem; font-weight: 600;
+    letter-spacing: 0.01em; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(76,217,100,0.35);
+    transition: all 0.2s;
+  }
+  .cham-start-btn:active { transform: scale(0.97); }
+
+  /* Round screen */
+  .cham-round-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.2rem 0 1rem;
+  }
+  .cham-round-label {
+    font-size: 0.8rem; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: rgba(76,217,100,0.6);
+  }
+  .cham-round-num {
+    font-size: 1rem; font-weight: 700; color: #fff;
+  }
+  .cham-scores-link {
+    font-size: 0.85rem; color: #4cd964;
+    cursor: pointer; font-weight: 500;
+  }
+
+  /* Status card */
+  .cham-status-card {
+    text-align: center; padding: 1.5rem 1rem;
+    background: rgba(76,217,100,0.04);
+    border: 0.5px solid rgba(76,217,100,0.15);
+    border-radius: 16px; margin-bottom: 1rem;
+  }
+  #cham-status-icon { font-size: 2.5rem; margin-bottom: 0.4rem; }
+  #cham-status-text {
+    font-size: 1.05rem; font-weight: 600;
+    color: #fff; margin-bottom: 0.25rem;
+  }
+  #cham-status-sub { font-size: 0.82rem; color: rgba(255,255,255,0.45); }
+
+  /* Deal button */
+  .cham-deal-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; gap: 0.7rem;
+    padding: 0.5rem 0 1.2rem;
+  }
+  .cham-deal-btn {
+    padding: 0.85rem 2.5rem; border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1a3a8c, #3a7bd5);
+    color: #fff; font-family: inherit;
+    font-size: 1rem; font-weight: 600;
+    letter-spacing: 0.01em; cursor: pointer;
+    box-shadow: 0 4px 20px rgba(58,123,213,0.45);
+    transition: all 0.2s;
+  }
+  .cham-deal-btn:active { transform: scale(0.97); }
+  .cham-hint { font-size: 0.8rem; color: rgba(255,255,255,0.35); text-align: center; margin: 0; }
+
+  /* Phase cards */
+  .cham-phase-card {
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 1.1rem 1.2rem;
+    margin-bottom: 0.9rem;
+  }
+  .cham-phase-title {
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: #4cd964; margin-bottom: 0.4rem;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cham-phase-body {
+    font-size: 0.88rem; color: rgba(255,255,255,0.65);
+    line-height: 1.55;
+  }
+
+  /* Buttons */
+  .cham-primary-btn {
+    width: 100%; padding: 0.85rem; border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #1a6b2e, #4cd964 50%, #1a6b2e);
+    color: #fff; font-family: inherit;
+    font-size: 0.95rem; font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 3px 14px rgba(76,217,100,0.3);
+    transition: all 0.2s; margin-bottom: 0.6rem;
+  }
+  .cham-primary-btn:active { transform: scale(0.97); }
+  .cham-secondary-btn {
+    width: 100%; padding: 0.75rem; border-radius: 12px;
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.65); font-family: inherit;
+    font-size: 0.9rem; cursor: pointer; transition: all 0.15s;
+    margin-bottom: 0.5rem;
+  }
+  .cham-secondary-btn:active { background: rgba(255,255,255,0.1); }
+
+  /* Vote grid */
+  .cham-vote-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.6rem; margin-bottom: 1rem;
+  }
+  .cham-vote-btn {
+    background: rgba(255,255,255,0.06);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 12px; color: rgba(255,255,255,0.8);
+    font-family: inherit; font-size: 0.9rem;
+    padding: 0.75rem; cursor: pointer; transition: all 0.15s;
+    font-weight: 500;
+  }
+  .cham-vote-btn:active { transform: scale(0.96); }
+  .cham-vote-btn.selected {
+    border-color: #4cd964;
+    background: rgba(76,217,100,0.15);
+    color: #4cd964;
+  }
+
+  /* Reveal card */
+  .cham-reveal-card {
+    text-align: center; padding: 1.5rem;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.12);
+    border-radius: 18px; margin-bottom: 1rem;
+  }
+  #cham-reveal-icon { font-size: 2.5rem; margin-bottom: 0.4rem; }
+  #cham-reveal-title {
+    font-size: 1.3rem; font-weight: 700;
+    color: #fff; margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  #cham-reveal-body {
+    font-size: 0.88rem; color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+  }
+
+  /* Scores panel */
+  .cham-scores-panel {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    background: rgba(10,30,10,0.95);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 0.5px solid rgba(76,217,100,0.2);
+    border-radius: 20px; padding: 1.5rem;
+    z-index: 100; min-width: 270px; max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .cham-scores-title {
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(76,217,100,0.6); margin-bottom: 1rem;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cham-score-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.55rem 0;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+    font-size: 0.9rem; color: rgba(255,255,255,0.8);
+  }
+  .cham-score-row:last-child { border-bottom: none; }
+  .cham-score-pts { color: #4cd964; font-weight: 700; }
+
+  /* End screen */
+  .cham-end-card {
+    text-align: center; padding: 1.5rem;
+    background: rgba(255,255,255,0.05);
+    border: 0.5px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+  }
+  .cham-final-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 0.5px solid rgba(255,255,255,0.07);
+    font-size: 0.95rem; color: rgba(255,255,255,0.75);
+  }
+  .cham-final-row:last-child { border-bottom: none; }
+  .cham-final-winner { color: #4cd964; font-weight: 700; }
+
+  /* Leaf decoration */
+  .cham-leaf-divider {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin: 0.5rem 0 1rem; opacity: 0.35;
+  }
+  .cham-leaf-divider::before, .cham-leaf-divider::after {
+    content: ''; flex: 1;
+    height: 0.5px; background: rgba(76,217,100,0.5);
+  }
+  .cham-leaf-divider span { font-size: 0.8rem; }
+
+  @keyframes chamBtnPulse {
+    0%,100% { box-shadow: 0 4px 16px rgba(76,217,100,0.35); }
+    50% { box-shadow: 0 4px 28px rgba(76,217,100,0.6); }
+  }
+  @keyframes dealBtnPulse {
+    0%,100% { box-shadow: 0 4px 20px rgba(58,123,213,0.45); }
+    50% { box-shadow: 0 4px 28px rgba(58,123,213,0.7); }
+  }
+
+  /* ══════════════════════════════════════
+       HOME SCREEN — Apple Glass Book
+    ══════════════════════════════════════ */
+    #screen-home {
+      background: #000;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      -webkit-font-smoothing: antialiased;
+      transform-origin: 50% 42%;
+      will-change: transform, opacity;
+    }
+    .home-bg-glow {
+      position: absolute;
+      width: 700px; height: 700px;
+      top: 50%; left: 50%; transform: translate(-50%, -62%);
+      background: radial-gradient(ellipse, rgba(80,100,160,0.12) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    /* Book */
+    .book-scene {
+      perspective: 900px;
+      margin-bottom: 3rem;
+    }
+    .book {
+      width: 100px; height: 136px; position: relative;
+      transform-style: preserve-3d; transform-origin: 50% 100%;
+      animation: home-spin 6s linear infinite;
+    }
+    @keyframes home-spin {
+      from { transform: rotateZ(14deg) rotateY(0deg); }
+      to   { transform: rotateZ(14deg) rotateY(360deg); }
+    }
+    .book-face { position: absolute; backface-visibility: hidden; }
+    .book-front {
+      width: 100px; height: 136px;
+      transform: translateZ(12px);
+      border-radius: 3px 6px 6px 3px;
+      position: relative;
+      transform-style: preserve-3d;
+    }
+    .book-front .glass {
+      position: absolute; inset: 0;
+      border-radius: 3px 6px 6px 3px;
+      background: linear-gradient(135deg, rgba(180,210,255,0.20) 0%, rgba(140,180,255,0.07) 30%, rgba(100,150,220,0.03) 65%, rgba(160,200,255,0.14) 100%);
+      border: 0.5px solid rgba(180,210,255,0.30);
+      box-shadow: inset 0 0 0 0.5px rgba(180,210,255,0.1), 0 0 30px rgba(100,160,255,0.10), 0 8px 32px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+    .book-front .glass::before {
+      content: ''; position: absolute;
+      top: -40%; left: -15%; width: 55%; height: 180%;
+      background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.05) 60%, transparent 100%);
+      transform: skewX(-10deg);
+    }
+    .book-front .glass::after {
+      content: ''; position: absolute;
+      top: 8px; left: 8px; right: 8px; bottom: 8px;
+      border: 0.5px solid rgba(255,255,255,0.10); border-radius: 1px;
+    }
+    .book-front .cover-content {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 8px; z-index: 2;
+    }
+    .home-front-ace {
+      font-size: 3.2rem; line-height: 1;
+      color: rgba(255,255,255,0.9);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.4), 0 0 20px rgba(200,220,255,0.4);
+    }
+    .home-front-label {
+      font-size: 0.38rem; font-weight: 500; letter-spacing: 0.45em;
+      color: rgba(255,255,255,0.28); text-transform: uppercase; text-indent: 0.45em;
+    }
+    .book-inside {
+      width: 100px; height: 136px;
+      position: absolute; inset: 0;
+      border-radius: 3px 6px 6px 3px;
+      background: linear-gradient(160deg, rgba(255,255,255,0.06) 0%, rgba(200,220,255,0.04) 40%, rgba(255,255,255,0.02) 70%, rgba(200,220,255,0.05) 100%);
+      overflow: hidden;
+      transform: rotateY(180deg);
+      backface-visibility: visible;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .book-inside::before {
+      content: ''; position: absolute; inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 5px, rgba(255,255,255,0.025) 5px, rgba(255,255,255,0.025) 6px);
+    }
+    .book-inside::after {
+      content: ''; position: absolute;
+      width: 70%; height: 60%;
+      background: radial-gradient(ellipse, rgba(180,210,255,0.08) 0%, transparent 70%);
+    }
+    .inside-binding {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
+      background: linear-gradient(90deg, rgba(0,0,0,0.4), rgba(255,255,255,0.04));
+      border-right: 0.5px solid rgba(255,255,255,0.06);
+    }
+    .book-back {
+      width: 100px; height: 136px;
+      transform: translateZ(-12px) rotateY(180deg);
+      border-radius: 6px 3px 3px 6px;
+      position: absolute; inset: 0;
+    }
+    .book-back .glass {
+      position: absolute; inset: 0;
+      border-radius: 6px 3px 3px 6px;
+      background: linear-gradient(135deg, rgba(255,230,180,0.16) 0%, rgba(255,255,255,0.07) 35%, rgba(200,180,255,0.03) 65%, rgba(255,215,150,0.12) 100%);
+      border: 0.5px solid rgba(255,235,195,0.22);
+      box-shadow: inset 0 0 0 0.5px rgba(255,225,150,0.07), 0 8px 32px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+    .book-back .glass::before {
+      content: ''; position: absolute;
+      top: -40%; left: -15%; width: 55%; height: 180%;
+      background: linear-gradient(105deg, transparent 0%, rgba(255,255,255,0.04) 40%, rgba(255,255,255,0.18) 50%, rgba(255,255,255,0.04) 60%, transparent 100%);
+      transform: skewX(-10deg);
+    }
+    .book-back .glass::after {
+      content: ''; position: absolute;
+      top: 8px; left: 8px; right: 8px; bottom: 8px;
+      border: 0.5px solid rgba(255,255,255,0.08); border-radius: 1px;
+    }
+    .book-back .cover-content {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center; z-index: 2;
+    }
+    .home-card-pair { position: relative; width: 60px; height: 64px; }
+    .home-mini-card {
+      width: 38px; height: 52px; border-radius: 6px;
+      position: absolute;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+      font-weight: 600;
+      background: rgba(255,255,255,0.12);
+      border: 0.5px solid rgba(255,255,255,0.25);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 6px 20px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .home-mini-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
+      background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+      border-radius: 6px 6px 0 0;
+    }
+    .hmc-ace { left: 0; top: 0; z-index: 2; color: rgba(255,255,255,0.92); }
+    .hmc-king { right: 0; bottom: 0; z-index: 1; color: rgba(255,90,80,0.95); }
+    .hmc-rank { font-size: 0.7rem; line-height: 1; position: relative; z-index: 1; }
+    .hmc-suit { font-size: 0.75rem; line-height: 1; position: relative; z-index: 1; }
+    .book-ca { position: absolute; width: 12px; height: 12px; border-color: rgba(255,255,255,0.2); border-style: solid; z-index: 3; }
+    .bca-tl { top: 6px; left: 6px; border-width: 0.5px 0 0 0.5px; }
+    .bca-tr { top: 6px; right: 6px; border-width: 0.5px 0.5px 0 0; }
+    .bca-bl { bottom: 6px; left: 6px; border-width: 0 0 0.5px 0.5px; }
+    .bca-br { bottom: 6px; right: 6px; border-width: 0 0.5px 0.5px 0; }
+    .book-spine {
+      width: 24px; height: 136px; position: absolute; left: -12px; top: 0;
+      background: linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(255,255,255,0.08) 45%, rgba(255,255,255,0.14) 50%, rgba(255,255,255,0.06) 55%, rgba(0,0,0,0.85) 100%);
+      border-radius: 3px 0 0 3px;
+      transform: rotateY(-90deg) translateZ(0);
+      border-left: 0.5px solid rgba(255,255,255,0.15);
+    }
+    .book-pages {
+      width: 22px; height: 132px; position: absolute; right: -10px; top: 2px;
+      background: repeating-linear-gradient(0deg, rgba(215,222,232,0.8), rgba(215,222,232,0.8) 1px, rgba(175,185,198,0.6) 1px, rgba(175,185,198,0.6) 3px);
+      border-radius: 0 1px 1px 0;
+      transform: rotateY(90deg) translateZ(1px);
+      box-shadow: inset -2px 0 4px rgba(0,0,0,0.15);
+    }
+    .home-logo {
+      font-size: clamp(4.5rem, 14vw, 7.5rem);
+      font-weight: 200; letter-spacing: 0.5em;
+      color: #f5f5f7; line-height: 1; text-indent: 0.5em;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    }
+    .home-divider {
+      width: 100%; height: 0.5px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      margin-top: 0.9rem;
+    }
+    .home-tagline {
+      margin-top: 0.75rem; font-size: 0.72rem; font-weight: 300;
+      letter-spacing: 0.22em; color: rgba(255,255,255,0.28);
+      text-transform: uppercase; text-indent: 0.22em;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    }
+    .home-tap {
+      margin-top: 3rem; font-size: 0.68rem; font-weight: 400;
+      letter-spacing: 0.18em; color: rgba(255,255,255,0.18);
+      animation: home-fade 2.5s ease-in-out infinite;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif;
+    }
+    @keyframes home-fade { 0%,100%{opacity:0.35;} 50%{opacity:1;} }
+
+    /* ══════════════════════════════════════
+       MAIN MENU SCREEN
+    ══════════════════════════════════════ */
+    #screen-menu {
+      background: var(--tome-dark);
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .menu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid rgba(200,168,75,0.15);
+      background: rgba(0,0,0,0.3);
+    }
+    .menu-logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.4rem;
+      letter-spacing: 0.3em;
+      color: var(--tome-gold);
+    }
+    .ble-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      color: var(--tome-muted);
+      padding: 4px 12px;
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 20px;
+    }
+    .ble-cards {
+      display: flex; gap: 3px; align-items: center;
+      position: relative; cursor: default;
+    }
+    .ble-cards::after {
+      content: 'Not connected';
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(8px);
+      color: #ff3b30; font-size: 0.7rem; font-weight: 500;
+      white-space: nowrap; padding: 4px 8px; border-radius: 6px;
+      border: 0.5px solid rgba(255,59,48,0.3);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.15s;
+      z-index: 999;
+    }
+    .ble-cards.connected::after {
+      content: 'Connected';
+      color: #4cd964;
+      border-color: rgba(76,217,100,0.3);
+    }
+    .ble-cards:hover::after { opacity: 1; }
+    .ble-card {
+      width: 14px; height: 20px; border-radius: 2px;
+      border: 1.5px solid #ff3b30;
+      background: rgba(255,255,255,0.04);
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .ble-card:nth-child(2) { margin-top: -4px; }
+    .ble-cards.connected .ble-card {
+      border-color: #4cd964;
+      box-shadow: 0 0 6px rgba(76,217,100,0.5);
+    }
+    .ble-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--tome-muted);
+    }
+    .ble-dot.connected { background: #5dbb7a; }
+    .ble-dot.connecting { background: var(--tome-gold); animation: blink 1s infinite; }
+
+    .menu-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .menu-card {
+      position: relative;
+      width: 280px;
+      height: 340px;
+      background: var(--tome-surface);
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 12px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+    }
+    .menu-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--tome-gold);
+    }
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .menu-card:hover::before { opacity: 1; }
+    .menu-card.card-control::before {
+      background: radial-gradient(ellipse at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 70%);
+    }
+    .menu-card.card-games::before {
+      background: radial-gradient(ellipse at 50% 0%, rgba(200,168,75,0.08) 0%, transparent 70%);
+    }
+
+
+    /* ── Card Control icon ── */
+    .ctrl-card-icon {
+      position: relative;
+      width: 72px; height: 64px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ctrl-card-icon .mini-card {
+      width: 36px; height: 50px; border-radius: 5px;
+      background: #fff; border: 1.5px solid #bbb;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: space-between;
+      padding: 4px 3px; box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+      font-size: 0.65rem; font-weight: 900; line-height: 1;
+      position: absolute;
+    }
+    .ctrl-card-icon .mini-card.ace {
+      color: #111;
+      left: 0; top: 4px;
+      transform: rotate(-8deg);
+      z-index: 1;
+    }
+    .ctrl-card-icon .mini-card.king {
+      color: #c0392b;
+      right: 0; top: 4px;
+      transform: rotate(8deg);
+      z-index: 2;
+    }
+    .ctrl-card-icon .wrench-wrap {
+      position: absolute;
+      top: 22px; right: -22px;
+      font-size: 2rem;
+      z-index: 3;
+      /* Pivot at jaw/head of wrench (top-right) — jaw stays on heart, handle swings */
+      transform-origin: 0% 0%;
+      filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.5));
+    }
+    .menu-card:hover .wrench-wrap {
+      animation: wrenchTighten 0.55s ease-in-out infinite alternate;
+    }
+    @keyframes wrenchTighten {
+      0%   { transform: rotate(-20deg); }
+      100% { transform: rotate(20deg); }
+    }
+    .menu-card:hover .mini-card.king {
+      transform: rotate(4deg);
+      transition: transform 0.3s ease;
+    }
+
+    /* ── Games icon ── */
+    .games-icon-wrap {
+      position: relative;
+      width: 64px; height: 64px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .joker-card-wrap {
+      font-size: 3rem;
+      display: inline-block;
+      animation: jokerBob 2.5s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .menu-card.card-games:hover .joker-card-wrap {
+      animation: jokerFlip 0.9s ease-in-out infinite;
+    }
+    @keyframes jokerBob {
+      0%,100% { transform: translateY(0) rotate(-2deg); }
+      50%      { transform: translateY(-5px) rotate(2deg); }
+    }
+    @keyframes jokerFlip {
+      0%   { transform: rotateY(0deg); }
+      50%  { transform: rotateY(180deg); }
+      100% { transform: rotateY(360deg); }
+    }
+
+    /* ── Image Formatter icon ── */
+    .fmt-icon-wrap {
+      position: relative; width: 68px; height: 68px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .fmt-frame {
+      display: inline-block;
+      animation: fmtBob 3s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .menu-card:hover .fmt-frame {
+      animation: fmtBob 3s ease-in-out infinite;
+    }
+    @keyframes fmtBob {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-3px); }
+    }
+    /* The color-cycling image inside the card frame */
+    #fmt-icon-img { animation: fmtColorCycle 12s steps(1) infinite; }
+    .menu-card:hover #fmt-icon-img { animation: fmtColorCycleHover 1.5s steps(1) infinite; }
+    @keyframes fmtColorCycle {
+      0%   { fill: #1a3a5c; }   /* blue sky - original */
+      25%  { fill: #3a1a1a; }   /* red treatment */
+      50%  { fill: #1a1a00; }   /* yellow treatment */
+      75%  { fill: #001a1a; }   /* green/teal treatment */
+    }
+    @keyframes fmtColorCycleHover {
+      0%   { fill: #000000; }   /* black */
+      16%  { fill: #ffffff; }   /* white */
+      33%  { fill: #ff0000; }   /* red */
+      50%  { fill: #00cc00; }   /* green */
+      66%  { fill: #0066ff; }   /* blue */
+      83%  { fill: #ffdd00; }   /* yellow */
+    }
+    #fmt-icon-sun  { animation: fmtSunCycle 12s steps(1) infinite; }
+    .menu-card:hover #fmt-icon-sun { animation: fmtSunHover 1.5s steps(1) infinite; }
+    @keyframes fmtSunCycle {
+      0%   { fill: #ffcc44; }
+      25%  { fill: #ff4444; }
+      50%  { fill: #ffffff; }
+      75%  { fill: #44ff44; }
+    }
+    @keyframes fmtSunHover {
+      0%   { fill: #888888; }
+      16%  { fill: #ffcc44; }
+      33%  { fill: #ff4444; }
+      50%  { fill: #44ff44; }
+      66%  { fill: #4488ff; }
+      83%  { fill: #ffffff; }
+    }
+    #fmt-icon-m1 { animation: fmtMtn1 12s steps(1) infinite; }
+    #fmt-icon-m2 { animation: fmtMtn2 12s steps(1) infinite; }
+    .menu-card:hover #fmt-icon-m1,
+    .menu-card:hover #fmt-icon-m2 { animation: fmtMtnHover 1.5s steps(1) infinite; }
+    @keyframes fmtMtn1 {
+      0%   { fill: #2a4a6a; }
+      25%  { fill: #6a2a2a; }
+      50%  { fill: #4a4a00; }
+      75%  { fill: #006a3a; }
+    }
+    @keyframes fmtMtn2 {
+      0%   { fill: #1e3d5a; }
+      25%  { fill: #5a1e1e; }
+      50%  { fill: #3a3a00; }
+      75%  { fill: #003a2a; }
+    }
+    @keyframes fmtMtnHover {
+      0%   { fill: #111; }
+      33%  { fill: #cc0000; }
+      66%  { fill: #0044cc; }
+    }
+
+    /* ── Settings gear icon ── */
+    .settings-gear-icon {
+      display: flex; align-items: center; justify-content: center;
+      height: 4rem; position: relative;
+    }
+    .gear-big, .gear-small {
+      display: inline-block; transform-origin: center;
+    }
+    .gear-big { font-size: 3rem; }
+    .gear-small {
+      font-size: 1.6rem;
+      position: absolute;
+      bottom: 2px; right: 2px;
+    }
+    .menu-card:hover .gear-big { animation: gearSpin 1.5s linear infinite; }
+    .menu-card:hover .gear-small { animation: gearSpinReverse 1.5s linear infinite; }
+    @keyframes gearSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes gearSpinReverse { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+    .menu-card-icon {
+      font-size: 4rem;
+      line-height: 1;
+    }
+    .menu-card-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+    .card-control .menu-card-title { color: var(--tome-cyan); }
+    .card-games .menu-card-title { color: var(--tome-gold); }
+    .menu-card-sub {
+      font-size: 0.8rem;
+      color: var(--tome-muted);
+      letter-spacing: 0.05em;
+      text-align: center;
+      padding: 0 1.5rem;
+    }
+
+    .menu-card-arrow {
+      position: absolute;
+      bottom: 1.2rem;
+      right: 1.2rem;
+      font-size: 1.2rem;
+      opacity: 0;
+      transform: translateX(-4px);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .card-control .menu-card-arrow { color: var(--tome-cyan); }
+    .card-games .menu-card-arrow { color: var(--tome-gold); }
+    .menu-card:hover .menu-card-arrow { opacity: 1; transform: translateX(0); }
+
+    /* ══════════════════════════════════════
+       SETTINGS SCREEN
+    ══════════════════════════════════════ */
+    #screen-settings {
+      background: var(--tome-dark);
+      overflow-y: auto;
+    }
+    .settings-header {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid rgba(200,168,75,0.15);
+      background: rgba(0,0,0,0.3);
+      position: sticky; top: 0; z-index: 10;
+    }
+    .settings-back {
+      font-size: 0.8rem; color: var(--tome-cyan); cursor: pointer;
+      letter-spacing: 0.05em; padding: 4px 8px;
+      border: 1px solid rgba(0,212,255,0.2); border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .settings-back:hover { background: rgba(0,212,255,0.08); }
+    .settings-title {
+      font-family: 'Orbitron', monospace; font-size: 1rem;
+      font-weight: 700; letter-spacing: 0.2em; color: var(--tome-white);
+    }
+    .settings-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem; max-width: 600px; margin: 0 auto; }
+    .settings-group {
+      background: var(--tome-surface);
+      border: 1px solid rgba(200,168,75,0.15);
+      border-radius: 12px; overflow: hidden;
+    }
+    .settings-group-title {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.2em;
+      color: var(--tome-cyan); text-transform: uppercase;
+      padding: 0.75rem 1.2rem 0.4rem;
+      border-bottom: 1px solid rgba(200,168,75,0.08);
+    }
+    .settings-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.85rem 1.2rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-left { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+    .settings-row-name { font-size: 0.85rem; color: var(--tome-white); }
+    .settings-row-desc { font-size: 0.7rem; color: var(--tome-muted); }
+    .settings-row-right { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+
+    /* Toggle switch */
+    .tog {
+      width: 44px; height: 26px;
+      background: var(--tome-mid);
+      border-radius: 13px;
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative; cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .tog.on { background: #0a84ff; border-color: #0a84ff; }
+    .tog::after {
+      content: ''; position: absolute;
+      width: 20px; height: 20px; background: #fff;
+      border-radius: 50%; top: 2px; left: 2px;
+      transition: left 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+    .tog.on::after { left: 20px; }
+
+    /* Slider */
+    .settings-slider { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+    .settings-slider input[type=range] {
+      width: 100px; height: 4px; cursor: pointer;
+      -webkit-appearance: none; background: var(--tome-mid);
+      border-radius: 2px; outline: none;
+    }
+    .settings-slider input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px;
+      background: #fff; border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+    .settings-slider-val { font-size: 0.7rem; color: var(--tome-cyan); }
+
+    /* Speed pills */
+    .speed-pills { display: flex; gap: 4px; }
+    .speed-pill {
+      padding: 4px 10px; border-radius: 6px; font-size: 0.7rem;
+      background: var(--tome-mid); color: var(--tome-muted);
+      border: 1px solid rgba(255,255,255,0.06); cursor: pointer;
+      transition: all 0.15s;
+    }
+    .speed-pill.active {
+      background: rgba(0,212,255,0.12); color: var(--tome-cyan);
+      border-color: rgba(0,212,255,0.3);
+    }
+
+    /* Name input */
+    .name-edit {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .name-edit input {
+      background: var(--tome-mid); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px; padding: 4px 8px; font-size: 0.8rem;
+      color: var(--tome-white); width: 110px; outline: none;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .name-edit input:focus { border-color: rgba(0,212,255,0.4); }
+
+    /* Settings menu card */
+    .menu-card.card-settings::before {
+      background: radial-gradient(ellipse at 50% 0%, rgba(48,209,88,0.08) 0%, transparent 70%);
+    }
+    .card-settings .menu-card-title { color: #30d158; }
+    .card-settings .menu-card-arrow { color: #30d158; }
+
+    /* ══════════════════════════════════════
+       TOAST NOTIFICATION SYSTEM
+    ══════════════════════════════════════ */
+    #toast-container {
+      position: fixed; top: 1rem; left: 50%; transform: translateX(-50%);
+      z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+      pointer-events: none; width: min(90vw, 360px);
+    }
+    .toast {
+      background: rgba(28,28,30,0.96);
+      border-radius: 12px; padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+      border: 0.5px solid rgba(255,255,255,0.12);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      pointer-events: all;
+      animation: toastIn 0.3s cubic-bezier(0.16,1,0.3,1);
+      position: relative; overflow: hidden;
+      backdrop-filter: blur(20px);
+    }
+    .toast.removing { animation: toastOut 0.3s ease forwards; }
+    @keyframes toastIn { from { opacity:0; transform:translateY(-16px) scale(0.95); } to { opacity:1; transform:none; } }
+    @keyframes toastOut { to { opacity:0; transform:translateY(-8px) scale(0.96); } }
+    .toast-icon {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; flex-shrink: 0; margin-top: 1px;
+    }
+    .toast.warn .toast-icon { background: rgba(255,159,10,0.15); color: #ff9f0a; }
+    .toast.err .toast-icon  { background: rgba(255,69,58,0.15);  color: #ff453a; }
+    .toast.ok .toast-icon   { background: rgba(48,209,88,0.15);  color: #30d158; }
+    .toast.info .toast-icon { background: rgba(0,212,255,0.15);  color: #00d4ff; }
+    .toast.warn { border-color: rgba(255,159,10,0.25); }
+    .toast.err  { border-color: rgba(255,69,58,0.25);  }
+    .toast.ok   { border-color: rgba(48,209,88,0.25);  }
+    .toast.info { border-color: rgba(0,212,255,0.25);  }
+    .toast-body { flex: 1; }
+    .toast-title { font-size: 0.78rem; font-weight: 500; color: #f5f5f7; margin-bottom: 1px; }
+    .toast-msg   { font-size: 0.65rem; color: rgba(255,255,255,0.5); line-height: 1.4; }
+    .toast-close {
+      font-size: 0.8rem; color: rgba(255,255,255,0.3); cursor: pointer;
+      padding: 0 2px; align-self: flex-start; flex-shrink: 0;
+      transition: color 0.15s;
+    }
+    .toast-close:hover { color: rgba(255,255,255,0.7); }
+    .toast-bar {
+      position: absolute; bottom: 0; left: 0; height: 2px;
+      border-radius: 0 0 12px 12px;
+      animation: toastBar linear forwards;
+    }
+    .toast.warn .toast-bar { background: #ff9f0a; }
+    .toast.err  .toast-bar { background: #ff453a; }
+    .toast.ok   .toast-bar { background: #30d158; }
+    .toast.info .toast-bar { background: #00d4ff; }
+    @keyframes toastBar { from { width:100%; } to { width:0%; } }
+
+    /* Disconnect overlay */
+    #disconnect-overlay {
+      position: fixed; inset: 0; z-index: 8000;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      display: none; align-items: center; justify-content: center;
+    }
+    #disconnect-overlay.show { display: flex; }
+    .disconnect-modal {
+      background: var(--tome-surface);
+      border: 1px solid rgba(255,69,58,0.3);
+      border-radius: 16px; padding: 2rem;
+      text-align: center; max-width: 300px; width: 90%;
+      display: flex; flex-direction: column; align-items: center; gap: 1rem;
+    }
+    .disc-icon {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: rgba(255,69,58,0.1);
+      border: 1px solid rgba(255,69,58,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+    }
+    .disc-title { font-family: 'Orbitron', monospace; font-size: 1rem; letter-spacing: 0.1em; color: #ff453a; }
+    .disc-msg { font-size: 0.8rem; color: var(--tome-muted); line-height: 1.5; }
+    .disc-btns { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; }
+    .disc-btn {
+      padding: 0.6rem 1.2rem; border-radius: 8px; font-size: 0.8rem;
+      font-family: 'Rajdhani', sans-serif; font-weight: 600;
+      cursor: pointer; border: none; transition: opacity 0.15s;
+    }
+    .disc-btn:hover { opacity: 0.85; }
+    .disc-btn-primary { background: #0a84ff; color: #fff; }
+    .disc-btn-ghost { background: rgba(255,255,255,0.08); color: var(--tome-white); border: 1px solid rgba(255,255,255,0.15); }
+
+    /* ══════════════════════════════════════
+       CARD CONTROL SCREEN  
+    ══════════════════════════════════════ */
+    #screen-control {
+      background: var(--tome-dark);
+      overflow-y: auto;
+    }
+
+    .ctrl-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid rgba(0,212,255,0.15);
+      background: rgba(0,0,0,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .ctrl-back {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: var(--tome-cyan);
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      border: 1px solid rgba(0,212,255,0.3);
+      padding: 4px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .ctrl-back:hover { background: rgba(0,212,255,0.1); }
+    .ctrl-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--tome-cyan);
+      flex: 1;
+    }
+
+    .ctrl-body {
+      padding: 2rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .ctrl-section {
+      margin-bottom: 2rem;
+      background: var(--tome-surface);
+      border: 1px solid rgba(0,212,255,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .ctrl-section-header {
+      padding: 0.8rem 1.2rem;
+      background: rgba(0,212,255,0.05);
+      border-bottom: 1px solid rgba(0,212,255,0.1);
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: var(--tome-cyan);
+      text-transform: uppercase;
+    }
+    .ctrl-section-body { padding: 1.2rem; }
+
+    /* BLE Connect */
+    .ble-connect-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .ble-status-text {
+      font-size: 0.9rem;
+      color: var(--tome-muted);
+      font-style: italic;
+      flex: 1;
+    }
+    .ble-status-text.connected { color: #5dbb7a; }
+    .ble-status-text.error { color: var(--bj-red-light); }
+
+    /* Card status grid */
+    .card-status-grid {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .card-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(200,168,75,0.15);
+      border-radius: 6px;
+      font-size: 0.7rem;
+      min-width: 60px;
+    }
+    .card-pill.active { border-color: #5dbb7a; }
+    .card-pill .card-pill-name { color: var(--tome-gold); font-family: 'Orbitron', monospace; font-size: 0.65rem; }
+    .card-pill .card-pill-slot { color: var(--tome-muted); font-size: 0.6rem; margin-top: 2px; }
+    .card-pill .card-pill-batt { color: #5dbb7a; font-size: 0.6rem; }
+
+    /* Image uploader */
+    .upload-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .upload-preset {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 6px;
+      padding: 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .upload-preset:hover { border-color: var(--tome-gold); }
+    .upload-preset .preset-name { font-size: 0.85rem; color: var(--tome-gold); margin-bottom: 0.3rem; }
+    .upload-preset .preset-slot { font-size: 0.7rem; color: var(--tome-muted); }
+    .upload-progress { 
+      height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-top: 0.5rem;
+    }
+    .upload-progress-bar { 
+      height: 100%; background: var(--tome-cyan); border-radius: 2px; width: 0%; transition: width 0.3s;
+    }
+
+    /* Buttons */
+    .tome-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0.6rem 1.4rem;
+      transition: all 0.15s;
+    }
+    .tome-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .tome-btn-cyan {
+      background: transparent;
+      border: 1px solid var(--tome-cyan);
+      color: var(--tome-cyan);
+    }
+    .tome-btn-cyan:not(:disabled):hover { background: rgba(0,212,255,0.1); }
+    .tome-btn-gold {
+      background: var(--tome-gold);
+      color: #0a0800;
+    }
+    .tome-btn-gold:not(:disabled):hover { background: var(--tome-gold-light); }
+    .tome-btn-ghost {
+      background: transparent;
+      border: 1px solid rgba(200,168,75,0.3);
+      color: var(--tome-muted);
+    }
+    .tome-btn-ghost:not(:disabled):hover { border-color: var(--tome-gold); color: var(--tome-gold); }
+
+    /* ══════════════════════════════════════
+       GAMES SCREEN
+    ══════════════════════════════════════ */
+    #screen-games {
+      background: var(--tome-dark);
+      overflow-y: auto;
+    }
+
+    .games-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem 2rem;
+      border-bottom: 1px solid rgba(200,168,75,0.15);
+      background: rgba(0,0,0,0.4);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .games-back {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      color: var(--tome-gold);
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      border: 1px solid rgba(200,168,75,0.3);
+      padding: 4px 12px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .games-back:hover { background: rgba(200,168,75,0.1); }
+    .games-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      color: var(--tome-gold);
+      flex: 1;
+    }
+    .games-ble-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: var(--tome-muted);
+      letter-spacing: 0.08em;
+    }
+    .games-ble-indicator .ble-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tome-muted); }
+    .games-ble-indicator .ble-dot.connected { background: #5dbb7a; }
+
+    .games-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.5rem;
+      padding: 2rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .game-tile {
+      position: relative;
+      background: var(--tome-surface);
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+      aspect-ratio: 3/4;
+      display: flex;
+      flex-direction: column;
+    }
+    .game-tile:hover { transform: translateY(-4px); border-color: var(--tome-gold); }
+    .game-tile.coming-soon { opacity: 0.4; cursor: default; }
+    .game-tile.coming-soon:hover { transform: none; border-color: rgba(200,168,75,0.2); }
+
+    .game-tile-bg {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .game-tile-bg.blackjack-bg {
+      background: linear-gradient(135deg, #3d0a0a 0%, #6b1a1a 50%, #3d0a0a 100%);
+    }
+    .game-tile-bg.poker-bg {
+      background: linear-gradient(135deg, #1a0a00 0%, #3d1a00 50%, #1a0a00 100%);
+    }
+    .game-tile-bg.future-bg {
+      background: linear-gradient(135deg, #0a0a1a 0%, #12122e 50%, #0a0a1a 100%);
+    }
+
+    .game-tile-footer {
+      padding: 0.8rem 1rem;
+      background: rgba(0,0,0,0.4);
+      border-top: 1px solid rgba(200,168,75,0.1);
+    }
+    .game-tile-name {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--tome-gold);
+    }
+    .game-tile-sub {
+      font-size: 0.7rem;
+      color: var(--tome-muted);
+      margin-top: 2px;
+    }
+    .coming-soon-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.7);
+      border: 1px solid var(--tome-muted);
+      color: var(--tome-muted);
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 3px;
+      font-family: 'Orbitron', monospace;
+    }
+
+    /* ══════════════════════════════════════
+       BLACKJACK SCREEN (wrapped)
+    ══════════════════════════════════════ */
+    #screen-blackjack {
+      background: var(--felt-dark);
+      overflow-y: auto;
+    }
+
+    .bj-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem 1.5rem;
+      border-bottom: 2px solid var(--bj-gold-dark);
+      background: var(--felt-dark);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      flex-wrap: wrap;
+    }
+    .bj-back {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      color: var(--bj-gold);
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      border: 1px solid rgba(200,168,75,0.4);
+      padding: 4px 10px;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .bj-back:hover { background: rgba(200,168,75,0.1); }
+    .bj-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--bj-gold);
+      flex: 1;
+    }
+    .bj-title span { color: var(--bj-red-light); }
+    .bj-ble {
+      font-size: 0.75rem;
+      font-style: italic;
+      color: var(--text-muted);
+    }
+    .bj-ble.connected { color: #5dbb7a; }
+
+    /* ── Blackjack game styles (preserved from original) ── */
+    .bj-main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem;
+      background: var(--felt-dark);
+      background-image: radial-gradient(ellipse at 50% 0%, #226b3622 0%, transparent 70%),
+        repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+      min-height: calc(100vh - 60px);
+    }
+    .bj-btn {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0.5rem 1.2rem;
+      transition: all 0.15s;
+    }
+    .bj-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .bj-btn-gold { background: var(--bj-gold); color: #1a1200; }
+    .bj-btn-gold:not(:disabled):hover { background: var(--bj-gold-light); transform: translateY(-1px); }
+    .bj-btn-red { background: var(--bj-red); color: #fff; }
+    .bj-btn-red:not(:disabled):hover { background: var(--bj-red-light); transform: translateY(-1px); }
+    .bj-btn-outline { background: transparent; border: 1.5px solid var(--bj-gold-dark); color: var(--bj-gold); }
+    .bj-btn-outline:not(:disabled):hover { border-color: var(--bj-gold); background: rgba(200,168,75,0.1); }
+
+    .table-felt {
+      background: var(--felt);
+      background-image: radial-gradient(ellipse at 50% 50%, #226b3640 0%, transparent 80%);
+      border: 3px solid var(--bj-gold-dark);
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+    .table-felt::before {
+      content: '';
+      position: absolute;
+      inset: 6px;
+      border: 1px solid rgba(200,168,75,0.2);
+      border-radius: 12px;
+      pointer-events: none;
+    }
+    .zone-label {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(200,168,75,0.6);
+      margin-bottom: 0.8rem;
+    }
+    .suit-watermark {
+      position: absolute; bottom: 12px; right: 16px;
+      font-size: 4rem; opacity: 0.06; pointer-events: none; user-select: none;
+    }
+    .playing-card {
+      width: 52px; height: 76px;
+      background: #fffef9;
+      border: 1.5px solid #ccc;
+      border-radius: 5px;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      font-weight: 700;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+      flex-shrink: 0;
+    }
+    .playing-card.red-card { color: var(--bj-red); }
+    .playing-card.black-card { color: #1a1a1a; }
+    .playing-card.hidden-card {
+      background: #1a3a5c;
+      background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 2px, transparent 2px, transparent 8px);
+      border-color: #2a5a8c;
+    }
+    .playing-card .rank { font-size: 1.1rem; line-height: 1; }
+    .playing-card .suit { font-size: 1.1rem; line-height: 1; }
+    .hand-display { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .hand-score {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--bj-gold); margin-left: 8px; align-self: center;
+    }
+    .hand-score.bust { color: var(--bj-red-light); }
+    .hand-score.blackjack { color: #5dbb7a; }
+    .players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .players-grid.one-player { grid-template-columns: 1fr; max-width: 420px; margin: 0 auto; }
+    .player-section {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(200,168,75,0.25);
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .player-section.active-turn { border-color: var(--bj-gold); box-shadow: 0 0 0 1px var(--bj-gold-dark); }
+    .player-section.bust-section { border-color: rgba(192,57,43,0.5); }
+    .player-section.winner-section { border-color: #5dbb7a; }
+    .player-name-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.7rem; }
+    .player-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 700; color: var(--bj-gold-light); }
+    .player-status-badge {
+      font-size: 0.72rem; font-family: 'Playfair Display', serif; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 3px;
+    }
+    .badge-turn { background: var(--bj-gold); color: #1a1200; }
+    .badge-stand { background: rgba(200,168,75,0.2); color: var(--bj-gold); }
+    .badge-bust { background: rgba(192,57,43,0.3); color: var(--bj-red-light); }
+    .badge-bj { background: rgba(93,187,122,0.3); color: #5dbb7a; }
+    .badge-win { background: rgba(93,187,122,0.3); color: #5dbb7a; }
+    .badge-lose { background: rgba(192,57,43,0.2); color: var(--bj-red-light); }
+    .badge-push { background: rgba(200,168,75,0.15); color: var(--bj-gold); }
+    .action-btns { display: flex; gap: 8px; margin-top: 0.8rem; flex-wrap: wrap; }
+    .physical-tracker { margin-bottom: 1.5rem; }
+    .physical-cards-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; }
+    .phys-card-slot { width: 52px; text-align: center; }
+    .phys-card-slot .phys-label { font-size: 0.6rem; color: rgba(200,168,75,0.5); font-family: 'Playfair Display', serif; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .phys-card-slot .logo-card {
+      width: 52px; height: 76px;
+      background: #0f3d1e;
+      border: 1.5px solid var(--bj-gold-dark);
+      border-radius: 5px;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.55rem; font-weight: 700;
+      color: var(--bj-gold-dark);
+      letter-spacing: 0.05em;
+      text-align: center;
+      line-height: 1.3;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+    }
+    .phys-card-slot .logo-card .logo-suit { font-size: 1rem; opacity: 0.4; }
+    .phys-card-slot .owner-tag { font-size: 0.6rem; color: var(--text-muted); margin-top: 3px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .bj-controls-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 1rem 1.5rem;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--bj-gold-dark);
+      border-radius: 8px;
+    }
+    .bj-controls-bar .spacer { flex: 1; }
+    .result-banner {
+      text-align: center; padding: 1.2rem;
+      background: rgba(0,0,0,0.5);
+      border: 2px solid var(--bj-gold); border-radius: 8px; margin-bottom: 1rem;
+    }
+    .result-banner h2 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--bj-gold); margin-bottom: 0.3rem; }
+    .result-banner p { color: var(--text-muted); font-style: italic; }
+    .ble-push-log { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.6rem; font-style: italic; min-height: 1.2rem; }
+    .ble-push-log.pushing { color: #5dbb7a; }
+    .ble-push-log.error { color: var(--bj-red-light); }
+    .bj-setup-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--bj-gold-dark);
+      border-radius: 8px;
+      padding: 2rem;
+      max-width: 420px;
+      margin: 0 auto 1.5rem;
+    }
+    .bj-setup-card h3 { font-family: 'Playfair Display', serif; color: var(--bj-gold); margin-bottom: 1.2rem; font-size: 1.1rem; }
+    .player-row { display: flex; align-items: center; gap: 10px; margin-bottom: 0.8rem; }
+    .player-row label { color: var(--cream); font-size: 1rem; min-width: 70px; font-family: 'Crimson Text', serif; }
+    .player-row input[type="text"] {
+      background: rgba(0,0,0,0.3); border: 1px solid var(--bj-gold-dark); border-radius: 4px;
+      color: var(--cream); font-family: 'Crimson Text', serif; font-size: 1rem;
+      padding: 0.4rem 0.7rem; flex: 1;
+    }
+    .player-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: var(--bj-gold); }
+    .bj-divider { border: none; border-top: 1px solid var(--bj-gold-dark); margin: 1.5rem 0; opacity: 0.5; }
+    .bj-setup-screen { text-align: center; padding: 2rem 1rem; }
+    .bj-setup-screen h2 { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--bj-gold); margin-bottom: 0.5rem; }
+    .bj-setup-screen p { color: var(--text-muted); margin-bottom: 2rem; font-style: italic; font-family: 'Crimson Text', serif; }
+
+    @media (max-width: 600px) {
+      .menu-body { gap: 1rem; }
+      .menu-card { width: 100%; max-width: 320px; height: 280px; }
+      .players-grid { grid-template-columns: 1fr; }
+      .playing-card { width: 44px; height: 64px; }
+      .phys-card-slot { width: 44px; }
+      .phys-card-slot .logo-card { width: 44px; height: 64px; }
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- ══ HOME SCREEN ══ -->
+  <div id="screen-home" class="screen" onclick="handleHomeTap()">
+    <div class="home-bg-glow"></div>
+
+    <div class="book-scene">
+      <div class="book" id="home-book">
+
+        <!-- Front cover -->
+        <div class="book-face book-front" id="home-front-cover" style="transform-style:preserve-3d;">
+          <div class="glass"></div>
+          <div class="book-ca bca-tl"></div><div class="book-ca bca-tr"></div>
+          <div class="book-ca bca-bl"></div><div class="book-ca bca-br"></div>
+          <div class="cover-content">
+            <div class="home-front-ace">♠</div>
+            <div class="home-front-label">TOME</div>
+          </div>
+          <div class="book-inside"><div class="inside-binding"></div></div>
+        </div>
+
+        <!-- Back cover -->
+        <div class="book-face book-back">
+          <div class="glass"></div>
+          <div class="book-ca bca-tl"></div><div class="book-ca bca-tr"></div>
+          <div class="book-ca bca-bl"></div><div class="book-ca bca-br"></div>
+          <div class="cover-content">
+            <div class="home-card-pair">
+              <div class="home-mini-card hmc-ace"><div class="hmc-rank">A</div><div class="hmc-suit">♠</div></div>
+              <div class="home-mini-card hmc-king"><div class="hmc-rank">K</div><div class="hmc-suit">♥</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="book-face book-spine"></div>
+        <div class="book-pages"></div>
+      </div>
+    </div>
+
+    <div class="home-logo">TOME</div>
+    <div class="home-divider"></div>
+    <div class="home-tagline">Electronic Card Deck</div>
+    <div class="home-tap">Tap to continue</div>
+  </div>
+
+  <!-- ══ MAIN MENU ══ -->
+<div id="screen-menu" class="screen hidden">
+  <div class="menu-header">
+    <div onclick="goToHome()" title="Home" style="font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;font-size:0.9rem;font-weight:200;letter-spacing:0.4em;color:#f5f5f7;cursor:pointer;padding:4px 8px;border:0.5px solid rgba(255,255,255,0.15);border-radius:4px;margin-left:8px;transition:opacity 0.15s;text-indent:0.4em;margin-left:0;border:none;padding:0;" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='1'">TOME</div>
+    <div class="ble-pill">
+      <div class="ble-cards" id="menu-ble-cards"><div class="ble-card"></div><div class="ble-card"></div></div>
+    </div>
+  </div>
+  <div class="menu-body">
+    <div class="menu-card card-control" onclick="goTo('control')">
+      <div class="menu-card-icon">
+        <div class="ctrl-card-icon">
+          <div class="mini-card ace">
+            <span>A</span><span>♠</span><span style="transform:rotate(180deg)">A</span>
+          </div>
+          <div class="mini-card king">
+            <span>K</span><span>♥</span><span style="transform:rotate(180deg)">K</span>
+          </div>
+          <span class="wrench-wrap">🔧</span>
+        </div>
+      </div>
+      <div class="menu-card-title">Card Control</div>
+      <div class="menu-card-sub">Connect cards, manage slots, upload images</div>
+      <div class="menu-card-arrow">→</div>
+    </div>
+    <div class="menu-card card-games" onclick="goTo('games')">
+      <div class="menu-card-icon">
+        <div class="games-icon-wrap">
+          <div class="joker-card-wrap">🃏</div>
+        </div>
+      </div>
+      <div class="menu-card-title">Games</div>
+      <div class="menu-card-sub">Play Blackjack and more card games</div>
+      <div class="menu-card-arrow">→</div>
+    </div>
+    <div class="menu-card card-formatter" onclick="goTo('formatter')" style="border-color:rgba(90,150,255,0.25);">
+      <div class="menu-card-icon">
+        <div class="fmt-icon-wrap">
+          <div class="fmt-frame">
+            <svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+              <!-- Card body -->
+              <rect x="5" y="3" width="46" height="54" rx="5" fill="#12121e" stroke="#5a96ff" stroke-width="1.5"/>
+              <!-- Sky — color cycles via CSS animation -->
+              <rect id="fmt-icon-img" x="9" y="8" width="38" height="32" rx="3" fill="#1a3a5c"/>
+              <!-- Sun — color cycles -->
+              <circle id="fmt-icon-sun" cx="36" cy="16" r="5" fill="#ffcc44"/>
+              <!-- Mountains — color cycles -->
+              <polygon id="fmt-icon-m1" points="9,40 21,18 33,40" fill="#2a4a6a"/>
+              <polygon id="fmt-icon-m2" points="20,40 34,20 48,40" fill="#1e3d5a"/>
+              <!-- Ground strip -->
+              <rect x="9" y="36" width="38" height="4" rx="1" fill="#0a1820"/>
+              <!-- Image frame border -->
+              <rect x="9" y="8" width="38" height="32" rx="3" fill="none" stroke="rgba(90,150,255,0.45)" stroke-width="1"/>
+              <!-- 6 e-ink color swatches — static, always showing the full palette -->
+              <rect x="9"  y="46" width="6" height="7" rx="1.5" fill="#000000"/>
+              <rect x="16" y="46" width="6" height="7" rx="1.5" fill="#ffffff" opacity="0.85"/>
+              <rect x="23" y="46" width="6" height="7" rx="1.5" fill="#ff0000"/>
+              <rect x="30" y="46" width="6" height="7" rx="1.5" fill="#00bb00"/>
+              <rect x="37" y="46" width="6" height="7" rx="1.5" fill="#4488ff"/>
+              <rect x="44" y="46" width="6" height="7" rx="1.5" fill="#ffdd00"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="menu-card-title" style="color:#5a96ff">Image Formatter</div>
+      <div class="menu-card-sub">Load, crop and upload any image to any card slot</div>
+      <div class="menu-card-arrow" style="color:#5a96ff">→</div>
+    </div>
+    <div class="menu-card card-settings" onclick="goTo('settings')">
+      <div class="menu-card-icon">
+        <div class="settings-gear-icon">
+          <span class="gear-big">⚙️</span>
+          <span class="gear-small">⚙️</span>
+        </div>
+      </div>
+      <div class="menu-card-title" style="color:#30d158">Settings</div>
+      <div class="menu-card-sub">Player names, brightness, haptics</div>
+      <div class="menu-card-arrow" style="color:#30d158">→</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CARD CONTROL ══ -->
+<div id="screen-control" class="screen hidden">
+  <div class="ctrl-header">
+    <div class="ctrl-back" onclick="goTo('menu')">← Menu</div>
+    <div class="ctrl-title">Card Control</div>
+    <div onclick="goToHome()" title="Home" style="font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;font-size:0.9rem;font-weight:200;letter-spacing:0.4em;color:#f5f5f7;cursor:pointer;padding:4px 8px;border:0.5px solid rgba(255,255,255,0.15);border-radius:4px;margin-left:8px;transition:opacity 0.15s;text-indent:0.4em;margin-left:auto;" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='1'">TOME</div>
+  </div>
+  <div class="ctrl-body">
+
+    <!-- Slot Test -->
+    <div class="ctrl-section">
+      <div class="ctrl-section-header">Test a Slot</div>
+      <div class="ctrl-section-body">
+        <p style="font-size:0.85rem;color:var(--tome-muted);margin-bottom:0.75rem;">Push any slot to all 7 cards to verify an upload worked.</p>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="number" id="test-slot-input" min="0" max="999" value="140"
+            style="width:80px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.15);border-radius:8px;padding:8px 10px;color:#f5f5f7;font-size:18px;font-weight:700;text-align:center;font-family:inherit;outline:none;"/>
+          <button onclick="testPushSlot()" class="tome-btn tome-btn-cyan" style="flex:1;">
+            Push to All Cards
+          </button>
+        </div>
+        <div id="test-slot-status" style="font-size:0.8rem;color:var(--tome-muted);font-style:italic;margin-top:6px;">—</div>
+      </div>
+    </div>
+
+    <!-- BLE Connection -->
+    <div class="ctrl-section">
+      <div class="ctrl-section-header">Bluetooth Connection</div>
+      <div class="ctrl-section-body">
+        <div class="ble-connect-row">
+          <div class="ble-cards" id="ctrl-ble-cards"><div class="ble-card"></div><div class="ble-card"></div></div>
+          <span class="ble-status-text" id="ctrl-ble-status" style="display:none;"></span>
+          <button class="tome-btn tome-btn-cyan" id="ctrl-btn-connect">Connect Cards</button>
+        </div>
+        <div class="card-status-grid" id="ctrl-card-grid"></div>
+      </div>
+    </div>
+
+    <!-- Image Management -->
+    <div class="ctrl-section">
+      <div class="ctrl-section-header">Result Images</div>
+      <div class="ctrl-section-body">
+        <p style="font-size:0.85rem; color:var(--tome-muted); margin-bottom:1rem;">Upload built-in result images to the cards. Required for winner/loser screens during games.</p>
+        <div class="upload-grid">
+          <div class="upload-preset" onclick="uploadPreset('winner')">
+            <div class="preset-name">🏆 Winner</div>
+            <div class="preset-slot">→ Slot 60</div>
+            <div class="upload-progress"><div class="upload-progress-bar" id="prog-winner"></div></div>
+          </div>
+          <div class="upload-preset" onclick="uploadPreset('loser')">
+            <div class="preset-name">💀 Dealer Wins</div>
+            <div class="preset-slot">→ Slot 61</div>
+            <div class="upload-progress"><div class="upload-progress-bar" id="prog-loser"></div></div>
+          </div>
+          <div class="upload-preset" onclick="uploadPreset('push')">
+            <div class="preset-name">🤝 Push / Tie</div>
+            <div class="preset-slot">→ Slot 62</div>
+            <div class="upload-progress"><div class="upload-progress-bar" id="prog-push"></div></div>
+          </div>
+          <div class="upload-preset" onclick="uploadPreset('cardback')">
+            <div class="preset-name">🂠 Card Back</div>
+            <div class="preset-slot">→ Slot 63</div>
+            <div class="upload-progress"><div class="upload-progress-bar" id="prog-cardback"></div></div>
+          </div>
+          <div class="upload-preset" onclick="uploadPreset('all')">
+            <div class="preset-name">⬆ Upload All</div>
+            <div class="preset-slot">Slots 60–63</div>
+            <div class="upload-progress"><div class="upload-progress-bar" id="prog-all"></div></div>
+          </div>
+        </div>
+        <div id="ctrl-upload-log" style="font-size:0.8rem; color:var(--tome-muted); font-style:italic; min-height:1.2rem;">—</div>
+      </div>
+    </div>
+
+    <!-- Chameleon Game Assets -->
+    <div class="ctrl-section">
+      <div class="ctrl-section-header">🦎 Chameleon Game Assets</div>
+      <div class="ctrl-section-body">
+        <p style="font-size:0.85rem; color:var(--tome-muted); margin-bottom:0.8rem;">Upload all 51 Chameleon game images once. After this, dealing is instant — no upload wait each round.</p>
+        <p style="font-size:0.8rem; color:rgba(76,217,100,0.6); margin-bottom:1rem;">Chameleon card → Slot 70 &nbsp;·&nbsp; 50 Categories → Slots 71–120</p>
+        <div style="margin-bottom:0.8rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+            <span id="cham-upload-label" style="font-size:0.85rem;color:var(--tome-muted);">Ready to upload</span>
+            <span id="cham-upload-count" style="font-size:0.8rem;color:rgba(76,217,100,0.6);">0 / 51</span>
+          </div>
+          <div class="upload-progress" style="height:8px;border-radius:4px;">
+            <div class="upload-progress-bar" id="prog-cham-all" style="border-radius:4px;background:linear-gradient(90deg,#1a6b2e,#4cd964);transition:width 0.3s;"></div>
+          </div>
+        </div>
+        <button onclick="uploadChameleonAssets()" id="cham-upload-btn" style="width:100%;padding:0.75rem;border:none;border-radius:12px;background:linear-gradient(135deg,#1a6b2e,#4cd964 50%,#1a6b2e);color:#fff;font-family:inherit;font-size:0.95rem;font-weight:600;cursor:pointer;box-shadow:0 3px 14px rgba(76,217,100,0.3);display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <span id="cham-upload-btn-main">Upload Next 5</span>
+          <span id="cham-upload-btn-sub" style="font-size:0.7rem;opacity:0.7;font-weight:400;">Press repeatedly to upload all 51</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Advanced -->
+    <div class="ctrl-section">
+      <div class="ctrl-section-header">Advanced</div>
+      <div class="ctrl-section-body" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="tome-btn tome-btn-ghost" id="ctrl-btn-poweroff">Power Off Cards</button>
+        <button class="tome-btn tome-btn-ghost" id="ctrl-btn-pair">Pair Peripherals</button>
+        <button class="tome-btn tome-btn-ghost" id="ctrl-btn-unpair">Unpair Peripherals</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ GAMES ══ -->
+<div id="screen-games" class="screen hidden">
+  <div class="games-header">
+    <div class="games-back" onclick="goTo('menu')">← Menu</div>
+    <div class="games-title">Games</div>
+    <div class="games-ble-indicator">
+      <div class="ble-cards" id="games-ble-cards"><div class="ble-card"></div><div class="ble-card"></div></div>
+    </div>
+    <div onclick="goToHome()" title="Home" style="font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;font-size:0.9rem;font-weight:200;letter-spacing:0.4em;color:#f5f5f7;cursor:pointer;padding:4px 8px;border:0.5px solid rgba(255,255,255,0.15);border-radius:4px;margin-left:8px;transition:opacity 0.15s;text-indent:0.4em;" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='1'">TOME</div>
+  </div>
+  <div class="games-grid">
+    <!-- Blackjack -->
+    <div class="game-tile" onclick="goTo('blackjack')">
+      <div class="game-tile-bg" style="background:linear-gradient(160deg,#0a1f0a,#0d2e0d,#071507);overflow:hidden;position:relative;">
+        <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;">
+          <!-- Felt table -->
+          <rect x="0" y="0" width="120" height="140" fill="#0a2010"/>
+          <!-- Felt texture lines -->
+          <line x1="0" y1="70" x2="120" y2="70" stroke="#0b2511" stroke-width="8"/>
+          <line x1="0" y1="35" x2="120" y2="35" stroke="#0b2511" stroke-width="4" opacity="0.5"/>
+          <line x1="0" y1="105" x2="120" y2="105" stroke="#0b2511" stroke-width="4" opacity="0.5"/>
+          <!-- Gold table border arc -->
+          <path d="M10,130 Q60,10 110,130" fill="none" stroke="#c8a020" stroke-width="1.5" opacity="0.6"/>
+          <!-- Dealer card face-down (back) -->
+          <rect x="38" y="8" width="44" height="60" rx="4" fill="#1a0a2e" stroke="#c8a020" stroke-width="1.2"/>
+          <!-- Card back pattern -->
+          <rect x="42" y="12" width="36" height="52" rx="2" fill="none" stroke="rgba(200,160,32,0.3)" stroke-width="0.8"/>
+          <line x1="42" y1="12" x2="78" y2="64" stroke="rgba(200,160,32,0.15)" stroke-width="0.6"/>
+          <line x1="78" y1="12" x2="42" y2="64" stroke="rgba(200,160,32,0.15)" stroke-width="0.6"/>
+          <circle cx="60" cy="38" r="10" fill="none" stroke="rgba(200,160,32,0.3)" stroke-width="0.8"/>
+          <!-- King of Hearts - right card, slightly behind -->
+          <rect x="58" y="75" width="44" height="60" rx="4" fill="#fff" stroke="#ddd" stroke-width="0.5" transform="rotate(8,80,105)"/>
+          <text x="62" y="90" font-size="9" font-family="Georgia,serif" fill="#cc2222" font-weight="bold" transform="rotate(8,80,105)">K</text>
+          <text x="62" y="99" font-size="8" font-family="Georgia,serif" fill="#cc2222" transform="rotate(8,80,105)">♥</text>
+          <text x="97" y="128" font-size="9" font-family="Georgia,serif" fill="#cc2222" font-weight="bold" transform="rotate(8,80,105) rotate(180,80,118)">K</text>
+          <!-- Large heart in center of King -->
+          <text x="80" y="115" font-size="16" font-family="Georgia,serif" fill="#cc2222" text-anchor="middle" transform="rotate(8,80,105)">♥</text>
+          <!-- Ace of Spades - left card, front -->
+          <rect x="18" y="75" width="44" height="60" rx="4" fill="#fff" stroke="#ddd" stroke-width="0.5" transform="rotate(-8,40,105)"/>
+          <text x="21" y="90" font-size="9" font-family="Georgia,serif" fill="#111" font-weight="bold" transform="rotate(-8,40,105)">A</text>
+          <text x="21" y="99" font-size="8" font-family="Georgia,serif" fill="#111" transform="rotate(-8,40,105)">♠</text>
+          <text x="58" y="128" font-size="9" font-family="Georgia,serif" fill="#111" font-weight="bold" transform="rotate(-8,40,105) rotate(180,40,118)">A</text>
+          <!-- Big spade -->
+          <text x="40" y="115" font-size="20" font-family="Georgia,serif" fill="#111" text-anchor="middle" transform="rotate(-8,40,105)">♠</text>
+          <!-- 21 badge -->
+          <rect x="44" y="44" width="32" height="18" rx="9" fill="#c8a020"/>
+          <text x="60" y="57" font-size="11" font-family="Georgia,serif" fill="#0a1a0a" text-anchor="middle" font-weight="bold">21</text>
+        </svg>
+      </div>
+      <div class="game-tile-footer">
+        <div class="game-tile-name">Blackjack</div>
+        <div class="game-tile-sub">1-2 players · Dealer mode</div>
+      </div>
+    </div>
+    <div class="game-tile" onclick="goTo('chameleon')">
+      <div class="game-tile-bg" style="background:linear-gradient(160deg,#071a07,#0d2e0d,#0a1f12);overflow:hidden;position:relative;">
+        <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;">
+          <!-- Background foliage -->
+          <ellipse cx="20" cy="30" rx="22" ry="16" fill="#0d2a0d" opacity="0.8"/>
+          <ellipse cx="100" cy="50" rx="18" ry="14" fill="#0d2a0d" opacity="0.8"/>
+          <ellipse cx="60" cy="20" rx="25" ry="12" fill="#122a12" opacity="0.7"/>
+          <ellipse cx="15" cy="100" rx="20" ry="14" fill="#0d2a0d" opacity="0.6"/>
+          <ellipse cx="105" cy="110" rx="18" ry="12" fill="#0d2a0d" opacity="0.6"/>
+          <!-- Main branch -->
+          <path d="M5,95 Q40,80 80,85 Q100,87 118,80" fill="none" stroke="#3a2010" stroke-width="8" stroke-linecap="round"/>
+          <path d="M5,95 Q40,80 80,85 Q100,87 118,80" fill="none" stroke="#4a2e18" stroke-width="6" stroke-linecap="round"/>
+          <!-- Branch texture -->
+          <path d="M5,95 Q40,80 80,85 Q100,87 118,80" fill="none" stroke="#2a1808" stroke-width="2" stroke-linecap="round" stroke-dasharray="4,8"/>
+          <!-- Chameleon body -->
+          <ellipse cx="62" cy="74" rx="28" ry="13" fill="#2a6a2a" transform="rotate(-5,62,74)"/>
+          <!-- Belly lighter -->
+          <ellipse cx="62" cy="76" rx="22" ry="8" fill="#3a8a3a" opacity="0.5" transform="rotate(-5,62,74)"/>
+          <!-- Tail curled down -->
+          <path d="M90,76 Q105,82 108,95 Q110,108 102,112 Q96,115 94,108" fill="none" stroke="#2a6a2a" stroke-width="7" stroke-linecap="round"/>
+          <path d="M90,76 Q105,82 108,95 Q110,108 102,112 Q96,115 94,108" fill="none" stroke="#3a8a3a" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+          <!-- Head -->
+          <ellipse cx="36" cy="68" rx="18" ry="14" fill="#2a6a2a" transform="rotate(-10,36,68)"/>
+          <!-- Mouth ridge -->
+          <path d="M22,70 Q36,64 50,68" fill="none" stroke="#1a4a1a" stroke-width="2"/>
+          <!-- Casque/crest -->
+          <path d="M30,56 L34,46 L38,56" fill="#1a5a1a" stroke="#1a4a1a" stroke-width="0.5"/>
+          <path d="M34,58 L37,50 L40,58" fill="#1a5a1a" opacity="0.7"/>
+          <!-- Eye - large, swiveling -->
+          <circle cx="28" cy="63" r="8" fill="#e8e800" stroke="#1a4a1a" stroke-width="1"/>
+          <circle cx="28" cy="63" r="5" fill="#1a1a00"/>
+          <circle cx="30" cy="61" r="2" fill="#fff" opacity="0.8"/>
+          <!-- Eye ring detail -->
+          <circle cx="28" cy="63" r="8" fill="none" stroke="#c8c800" stroke-width="0.5" opacity="0.5"/>
+          <!-- Front legs gripping branch -->
+          <path d="M48,82 Q44,90 42,95" fill="none" stroke="#1a5a1a" stroke-width="5" stroke-linecap="round"/>
+          <path d="M56,83 Q54,92 52,97" fill="none" stroke="#1a5a1a" stroke-width="5" stroke-linecap="round"/>
+          <!-- Toes on branch -->
+          <path d="M42,95 L38,97 M42,95 L42,99 M42,95 L46,97" stroke="#1a4a1a" stroke-width="2" stroke-linecap="round"/>
+          <path d="M52,97 L48,99 M52,97 L52,101 M52,97 L56,99" stroke="#1a4a1a" stroke-width="2" stroke-linecap="round"/>
+          <!-- Back legs -->
+          <path d="M72,80 Q76,90 78,96" fill="none" stroke="#1a5a1a" stroke-width="5" stroke-linecap="round"/>
+          <!-- Scale pattern on body -->
+          <path d="M50,70 Q62,66 75,70" fill="none" stroke="#1a5a1a" stroke-width="1" opacity="0.6"/>
+          <path d="M48,75 Q62,71 76,75" fill="none" stroke="#1a5a1a" stroke-width="1" opacity="0.6"/>
+          <!-- Tongue flick -->
+          <path d="M20,68 Q8,62 2,58" fill="none" stroke="#cc2222" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="2" cy="58" r="2.5" fill="#cc2222"/>
+          <!-- Leaves foreground -->
+          <ellipse cx="8" cy="78" rx="14" ry="8" fill="#1a5a1a" opacity="0.7" transform="rotate(-20,8,78)"/>
+          <ellipse cx="112" cy="72" rx="12" ry="7" fill="#1a5a1a" opacity="0.6" transform="rotate(15,112,72)"/>
+          <!-- Dappled light spots -->
+          <circle cx="55" cy="45" r="6" fill="#ffffff" opacity="0.04"/>
+          <circle cx="85" cy="30" r="8" fill="#ffffff" opacity="0.03"/>
+          <!-- Word cards scattered in bg -->
+          <rect x="8" y="108" width="26" height="18" rx="2" fill="#0a1a0a" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" transform="rotate(-5,21,117)"/>
+          <rect x="86" y="112" width="26" height="18" rx="2" fill="#0a1a0a" stroke="rgba(255,255,255,0.08)" stroke-width="0.5" transform="rotate(4,99,121)"/>
+          <text x="21" y="120" font-size="5" fill="rgba(255,255,255,0.2)" text-anchor="middle" transform="rotate(-5,21,117)">TOPIC</text>
+          <text x="99" y="124" font-size="5" fill="rgba(255,255,255,0.2)" text-anchor="middle" transform="rotate(4,99,121)">CLUE</text>
+        </svg>
+      </div>
+      <div class="game-tile-footer">
+        <div class="game-tile-name">Chameleon</div>
+        <div class="game-tile-sub">2-7 players · Social</div>
+      </div>
+    </div>
+    <div class="game-tile" onclick="goTo('dungeon')">
+      <div class="game-tile-bg" style="background:linear-gradient(135deg,#0d0a04,#1a1208,#0d0a04);overflow:hidden;position:relative;">
+        <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;">
+          <!-- Dark stone arch -->
+          <rect x="0" y="0" width="120" height="100" fill="#0a0804"/>
+          <!-- Stone wall texture -->
+          <rect x="0" y="30" width="28" height="70" fill="#1a1510"/>
+          <rect x="92" y="30" width="28" height="70" fill="#1a1510"/>
+          <!-- Stone blocks left -->
+          <rect x="2" y="32" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="2" y="44" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="2" y="56" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="2" y="68" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="2" y="80" width="24" height="18" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <!-- Stone blocks right -->
+          <rect x="94" y="32" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="94" y="44" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="94" y="56" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="94" y="68" width="24" height="10" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <rect x="94" y="80" width="24" height="18" fill="none" stroke="#2a2018" stroke-width="0.5"/>
+          <!-- Arch keystone blocks -->
+          <path d="M28,30 Q60,2 92,30 L88,34 Q60,8 32,34 Z" fill="#221c12"/>
+          <!-- Dark tunnel inside arch -->
+          <ellipse cx="60" cy="62" rx="26" ry="36" fill="#050402"/>
+          <!-- Depth gradient in tunnel -->
+          <ellipse cx="60" cy="68" rx="18" ry="26" fill="#030301"/>
+          <ellipse cx="60" cy="74" rx="10" ry="16" fill="#000"/>
+          <!-- Torch on left wall -->
+          <rect x="22" y="42" width="4" height="12" fill="#5a3a10" rx="1"/>
+          <rect x="20" y="36" width="8" height="8" fill="#6a4418" rx="1"/>
+          <!-- Torch flame -->
+          <ellipse cx="24" cy="34" rx="4" ry="6" fill="#ff8800" class="dg-flame"/>
+          <ellipse cx="24" cy="33" rx="2.5" ry="4" fill="#ffcc00"/>
+          <ellipse cx="24" cy="32" rx="1.2" ry="2" fill="#ffffff" opacity="0.6"/>
+          <!-- Torch glow on wall -->
+          <radialGradient id="tglow" cx="24" cy="36" r="20" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ff8800" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#ff8800" stop-opacity="0"/>
+          </radialGradient>
+          <ellipse cx="24" cy="38" rx="18" ry="16" fill="url(#tglow)"/>
+          <!-- Floor stones -->
+          <rect x="28" y="88" width="64" height="12" fill="#0f0c07"/>
+          <line x1="60" y1="88" x2="60" y2="100" stroke="#1a1510" stroke-width="0.5"/>
+          <line x1="42" y1="91" x2="42" y2="100" stroke="#1a1510" stroke-width="0.5"/>
+          <line x1="78" y1="91" x2="78" y2="100" stroke="#1a1510" stroke-width="0.5"/>
+        </svg>
+      </div>
+      <div class="game-tile-footer">
+        <div class="game-tile-name">Cursed Dungeon</div>
+        <div class="game-tile-sub">2-7 players · Memory</div>
+      </div>
+    </div>
+    <div class="game-tile coming-soon">
+      <div class="coming-soon-badge">Soon</div>
+      <div class="game-tile-bg" style="background:linear-gradient(160deg,#12100a,#1e1a0e,#12100a);overflow:hidden;position:relative;">
+        <svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;position:absolute;inset:0;">
+          <!-- Dark bg -->
+          <rect x="0" y="0" width="120" height="140" fill="#10100c"/>
+          <!-- Glow under chest -->
+          <ellipse cx="60" cy="115" rx="38" ry="8" fill="#c8a020" opacity="0.12"/>
+          <!-- Chest shadow -->
+          <ellipse cx="62" cy="118" rx="36" ry="5" fill="#000" opacity="0.4"/>
+          <!-- Chest base/body -->
+          <rect x="18" y="80" width="84" height="44" rx="4" fill="#5a3808"/>
+          <rect x="20" y="82" width="80" height="40" rx="3" fill="#6a4410"/>
+          <!-- Chest wood planks -->
+          <line x1="20" y1="96" x2="100" y2="96" stroke="#4a2e08" stroke-width="1.5"/>
+          <line x1="20" y1="110" x2="100" y2="110" stroke="#4a2e08" stroke-width="1.5"/>
+          <!-- Chest metal bands -->
+          <rect x="18" y="84" width="84" height="6" rx="1" fill="#8a6820" opacity="0.6"/>
+          <rect x="18" y="104" width="84" height="5" rx="1" fill="#8a6820" opacity="0.6"/>
+          <rect x="18" y="118" width="84" height="5" rx="1" fill="#8a6820" opacity="0.5"/>
+          <!-- Corner rivets -->
+          <circle cx="24" cy="87" r="3" fill="#c8a020"/>
+          <circle cx="96" cy="87" r="3" fill="#c8a020"/>
+          <circle cx="24" cy="121" r="3" fill="#c8a020"/>
+          <circle cx="96" cy="121" r="3" fill="#c8a020"/>
+          <!-- Chest lid -->
+          <path d="M18,80 Q18,52 60,48 Q102,52 102,80 Z" fill="#5a3808"/>
+          <path d="M20,80 Q20,54 60,51 Q100,54 100,80 Z" fill="#6a4410"/>
+          <!-- Lid wood grain -->
+          <path d="M22,72 Q60,65 98,72" fill="none" stroke="#4a2e08" stroke-width="1.5"/>
+          <path d="M20,79 Q60,74 100,79" fill="none" stroke="#4a2e08" stroke-width="1"/>
+          <!-- Lid metal band -->
+          <path d="M18,80 Q60,76 102,80 L102,74 Q60,70 18,74 Z" fill="#8a6820" opacity="0.5"/>
+          <!-- Lock -->
+          <rect x="50" y="72" width="20" height="16" rx="3" fill="#c8a020"/>
+          <path d="M54,72 Q54,62 60,62 Q66,62 66,72" fill="none" stroke="#c8a020" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="60" cy="80" r="3" fill="#8a6820"/>
+          <!-- Gold coins spilling from sides -->
+          <ellipse cx="26" cy="82" rx="6" ry="4" fill="#c8a020" opacity="0.7"/>
+          <ellipse cx="22" cy="86" rx="5" ry="3" fill="#a87818" opacity="0.6"/>
+          <ellipse cx="94" cy="82" rx="6" ry="4" fill="#c8a020" opacity="0.7"/>
+          <ellipse cx="98" cy="86" rx="5" ry="3" fill="#a87818" opacity="0.6"/>
+          <!-- Glow from keyhole -->
+          <radialGradient id="lglow" cx="60" cy="80" r="30" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#c8a020" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#c8a020" stop-opacity="0"/>
+          </radialGradient>
+          <ellipse cx="60" cy="76" rx="30" ry="20" fill="url(#lglow)"/>
+          <!-- Sparkles -->
+          <line x1="38" y1="35" x2="38" y2="45" stroke="#c8a020" stroke-width="1.5" opacity="0.6"/>
+          <line x1="33" y1="40" x2="43" y2="40" stroke="#c8a020" stroke-width="1.5" opacity="0.6"/>
+          <line x1="80" y1="25" x2="80" y2="33" stroke="#c8a020" stroke-width="1.5" opacity="0.5"/>
+          <line x1="76" y1="29" x2="84" y2="29" stroke="#c8a020" stroke-width="1.5" opacity="0.5"/>
+          <circle cx="55" cy="38" r="2" fill="#c8a020" opacity="0.4"/>
+          <circle cx="72" cy="42" r="1.5" fill="#c8a020" opacity="0.4"/>
+          <circle cx="40" cy="58" r="1.5" fill="#c8a020" opacity="0.3"/>
+          <!-- Coming soon text glow -->
+          <text x="60" y="22" font-size="8" fill="rgba(200,160,32,0.35)" text-anchor="middle" font-family="Georgia,serif" letter-spacing="1">MORE GAMES</text>
+        </svg>
+      </div>
+      <div class="game-tile-footer">
+        <div class="game-tile-name">More Games</div>
+        <div class="game-tile-sub">Coming soon</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BLACKJACK ══ -->
+<div id="screen-blackjack" class="screen hidden">
+  <div class="bj-header">
+    <div class="bj-back" onclick="goTo('games')">← Games</div>
+    <div class="bj-title">Black<span>Jack</span></div>
+    <div class="ble-cards" id="bj-ble-cards"><div class="ble-card"></div><div class="ble-card"></div></div>
+    <div onclick="goToHome()" title="Home" style="font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',sans-serif;font-size:0.9rem;font-weight:200;letter-spacing:0.4em;color:#f5f5f7;cursor:pointer;padding:4px 8px;border:0.5px solid rgba(255,255,255,0.15);border-radius:4px;margin-left:8px;transition:opacity 0.15s;text-indent:0.4em;" onmouseover="this.style.opacity='0.6'" onmouseout="this.style.opacity='1'">TOME</div>
+  </div>
+  <div class="bj-main">
+
+    <!-- Setup -->
+    <div id="bj-setup-screen" class="bj-setup-screen">
+      <h2>Table Setup</h2>
+      <p>Configure your players before dealing</p>
+      <div class="bj-setup-card">
+        <h3>Players</h3>
+        <div class="player-row">
+          <label>Player 1</label>
+          <input type="text" id="p1-name" value="Player 1" maxlength="12">
+          <input type="checkbox" id="p1-enabled" checked title="Enable">
+        </div>
+        <div class="player-row">
+          <label>Player 2</label>
+          <input type="text" id="p2-name" value="Player 2" maxlength="12">
+          <input type="checkbox" id="p2-enabled" title="Enable">
+        </div>
+        <hr class="bj-divider">
+        <p style="font-size:0.9rem; color:var(--text-muted); font-style:italic; margin-bottom:1rem; font-family:'Crimson Text',serif;">
+          Connect cards via Bluetooth in Card Control for physical card display.
+        </p>
+        <button class="bj-btn bj-btn-gold" id="bj-btn-start" style="width:100%; font-size:1rem; padding:0.7rem;">Begin Game</button>
+      </div>
+    </div>
+
+    <!-- Game -->
+    <div id="bj-game-screen" class="hidden">
+      <div id="bj-result-banner" class="result-banner hidden">
+        <h2 id="bj-result-title"></h2>
+        <p id="bj-result-subtitle"></p>
+      </div>
+      <!-- Physical card tracker -->
+      <div class="table-felt physical-tracker">
+        <div class="suit-watermark">♣</div>
+        <div class="zone-label">Physical Cards — E-Ink Display</div>
+        <div class="physical-cards-row" id="physical-cards-row"></div>
+        <div id="ble-log" class="ble-push-log">—</div>
+      </div>
+      <!-- Dealer -->
+      <div class="table-felt">
+        <div class="suit-watermark">♠</div>
+        <div class="zone-label">Dealer</div>
+        <div class="hand-display" id="dealer-hand"></div>
+      </div>
+      <!-- Players -->
+      <div class="table-felt">
+        <div class="suit-watermark">♥</div>
+        <div class="zone-label">Players</div>
+        <div id="players-grid" class="players-grid"></div>
+      </div>
+      <!-- Controls -->
+      <div class="bj-controls-bar">
+        <button class="bj-btn bj-btn-gold" id="bj-btn-deal">Deal New Hand</button>
+        <button class="bj-btn bj-btn-outline" id="bj-btn-reveal" disabled>Reveal Dealer</button>
+        <div class="spacer"></div>
+        <button class="bj-btn bj-btn-outline" id="bj-btn-setup">← Setup</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ CURSED DUNGEON ══ -->
+<div id="screen-dungeon" class="screen hidden" style="background:#0a0804;display:flex;flex-direction:column;overflow:hidden;">
+
+  <!-- Header -->
+  <div class="bj-header" style="border-bottom:1px solid rgba(220,40,40,0.2);background:rgba(0,0,0,0.4);">
+    <div class="bj-back" onclick="goTo('games')" style="color:#cc3333;">← Games</div>
+    <div class="bj-title" style="color:#cc3333;">Cursed <span style="color:#ff6666;">Dungeon</span></div>
+    <div onclick="goToHome()" style="font-family:-apple-system,sans-serif;font-size:0.9rem;font-weight:200;letter-spacing:0.4em;color:#f5f5f7;cursor:pointer;padding:4px 8px;border:0.5px solid rgba(255,255,255,0.15);border-radius:4px;margin-left:8px;text-indent:0.4em;">TOME</div>
+  </div>
+
+  <!-- HOME panel -->
+  <div id="dg-home" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:2rem;">
+    <div style="font-size:3rem;">🏚️</div>
+    <div style="font-size:1.2rem;font-weight:600;color:rgba(245,230,200,0.9);letter-spacing:0.05em;">The Cursed Dungeon</div>
+    <div style="font-size:0.8rem;color:rgba(245,230,200,0.4);text-align:center;max-width:280px;line-height:1.6;">
+      7 cards are dealt face-down. Players flip cards to find matching pairs. Flip the Curse and the dungeon seals forever.
+    </div>
+    <div style="font-size:0.72rem;color:rgba(90,150,255,0.5);text-align:center;margin-top:4px;">
+      Upload images to slots 140–146 via Image Formatter before playing.
+    </div>
+    <button onclick="dgNewRound()" style="margin-top:8px;padding:14px 36px;background:rgba(220,40,40,0.15);border:1.5px solid rgba(220,40,40,0.5);border-radius:10px;color:#ff6666;font-size:1rem;font-weight:600;letter-spacing:0.05em;cursor:pointer;">
+      Enter the Dungeon
+    </button>
+  </div>
+
+  <!-- GAME panel -->
+  <div id="dg-game" style="flex:1;display:none;flex-direction:column;overflow-y:auto;padding:1rem;">
+
+    <!-- Progress dots -->
+    <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;">
+      <div id="dg-dot-0" style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(200,144,26,0.4);background:transparent;transition:all 0.4s;"></div>
+      <div id="dg-dot-1" style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(200,144,26,0.4);background:transparent;transition:all 0.4s;"></div>
+      <div id="dg-dot-2" style="width:14px;height:14px;border-radius:50%;border:1.5px solid rgba(200,144,26,0.4);background:transparent;transition:all 0.4s;"></div>
+    </div>
+
+    <!-- Status -->
+    <div id="dg-status" style="text-align:center;font-size:0.78rem;color:rgba(245,230,200,0.45);margin-bottom:14px;min-height:1.2em;"></div>
+
+    <!-- Card grid -->
+    <div id="dg-card-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px;"></div>
+
+    <!-- Pair buttons -->
+    <div id="dg-pair-btns" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+
+    <!-- Curse button -->
+    <button onclick="dgCurseFlipped()" style="width:100%;padding:13px;background:rgba(220,40,40,0.08);border:1.5px solid rgba(220,40,40,0.35);border-radius:10px;color:#ff6666;font-size:0.9rem;font-weight:600;cursor:pointer;letter-spacing:0.03em;">
+      ☠ Curse Flipped
+    </button>
+  </div>
+
+  <!-- RESULT panel -->
+  <div id="dg-result" style="flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:2rem;">
+    <div id="dg-result-icon" style="font-size:3rem;"></div>
+    <div id="dg-result-title" style="font-size:1.3rem;font-weight:700;letter-spacing:0.05em;"></div>
+    <div id="dg-result-sub" style="font-size:0.82rem;color:rgba(245,230,200,0.5);text-align:center;max-width:280px;line-height:1.5;"></div>
+    <div id="dg-result-pairs" style="display:flex;flex-direction:column;gap:8px;width:100%;max-width:300px;margin-top:4px;"></div>
+    <button onclick="dgGoHome()" style="margin-top:8px;padding:12px 28px;background:rgba(200,144,26,0.1);border:1.5px solid rgba(200,144,26,0.35);border-radius:10px;color:rgba(200,144,26,0.9);font-size:0.9rem;font-weight:600;cursor:pointer;">
+      Play Again
+    </button>
+  </div>
+
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+const screens = ['home','menu','control','games','blackjack','settings','chameleon','formatter','dungeon'];
+function goTo(id) {
+  screens.forEach(s => {
+    const el = document.getElementById('screen-' + s);
+    el.classList.remove('hidden','slide-left','slide-right');
+    if (s !== id) el.classList.add('hidden');
+  });
+  updateBleIndicators();
+  if (id === 'chameleon') { chamInitUI(); }
+  if (id === 'control')   { chamUploadRefreshUI(); }
+  if (id === 'formatter') { fmtInit(); }
+  if (id === 'dungeon')    { dgInit(); }
+}
+
+let homeOpened = false;
+
+function handleHomeTap() {
+  if (homeOpened) return;
+  homeOpened = true;
+
+  const book       = document.getElementById('home-book');
+  const cover      = document.getElementById('home-front-cover');
+  const homeScreen = document.getElementById('screen-home');
+
+  // The spin animation: rotateZ(14deg) rotateY(0→360) over 6000ms, linear
+  // Read current progress from animation's elapsed time
+  const DURATION = 6000;
+  const now = performance.now();
+  // animationStartTime is not directly accessible, but we can derive progress
+  // by getting the current rotateY from getAnimations()
+  const anim = book.getAnimations()[0];
+  const progress = anim ? (anim.currentTime % DURATION) / DURATION : 0;
+  const currentY = progress * 360; // 0–360
+
+  // Stop the animation — book snaps to wherever CSS left it
+  // To avoid a jump: switch to a keyframe animation that starts at currentY
+  // and completes one full revolution quickly to land at 360 (= 0)
+  const spinRemaining = 360 - currentY; // degrees left to complete this revolution
+  const spinDuration  = Math.max(300, (spinRemaining / 360) * 800); // proportional, max 0.8s
+
+  // Inject a one-shot spin-to-front keyframe
+  const styleId = 'home-spin-to-front';
+  let styleEl = document.getElementById(styleId);
+  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = styleId; document.head.appendChild(styleEl); }
+  styleEl.textContent = `
+    @keyframes spinToFront {
+      from { transform: rotateZ(14deg) rotateY(${currentY}deg); }
+      to   { transform: rotateZ(14deg) rotateY(360deg); }
+    }
+  `;
+
+  // Replace infinite spin with one-shot spin-to-front
+  book.style.animation = `spinToFront ${spinDuration}ms linear forwards`;
+
+  // When it lands front-facing, open the cover then zoom in
+  setTimeout(() => {
+    book.style.animation = 'none';
+    book.style.transform  = 'rotateZ(14deg) rotateY(0deg)';
+
+    // Swing cover open
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      cover.style.transformOrigin = 'left center';
+      cover.style.transition = 'transform 0.55s cubic-bezier(0.4, 0, 0.1, 1)';
+      cover.style.transform  = 'translateZ(12px) rotateY(-165deg)';
+
+      // Zoom into open pages — aim at the inside of the book precisely
+      setTimeout(() => {
+        // Get the book's position on screen to aim the zoom origin
+        const bookRect  = book.getBoundingClientRect();
+        const screenW   = window.innerWidth;
+        const screenH   = window.innerHeight;
+        // Centre of the book as a % of the screen
+        const originX = ((bookRect.left + bookRect.width  * 0.5) / screenW * 100).toFixed(1) + '%';
+        // Crease is the top edge of the book (where cover meets pages when open)
+        const originY = ((bookRect.top + bookRect.height * 0.2) / screenH * 100).toFixed(1) + '%';
+        homeScreen.style.transformOrigin = `${originX} ${originY}`;
+        homeScreen.style.transition = 'transform 0.6s cubic-bezier(0.2, 0, 0.6, 1), opacity 0.5s';
+        homeScreen.style.transform  = 'scale(6)';
+        homeScreen.style.opacity    = '0';
+        homeScreen.style.pointerEvents = 'none';
+        setTimeout(() => goTo('menu'), 620);
+      }, 450);
+    }));
+  }, spinDuration);
+}
+
+function goToHome() {
+  // Reset home screen state
+  homeOpened = false;
+  const homeScreen = document.getElementById('screen-home');
+  const book = document.getElementById('home-book');
+  const cover = document.getElementById('home-front-cover');
+  // Reset cover and book
+  cover.style.transition = 'none';
+  cover.style.transform = '';
+  cover.style.transformOrigin = '';
+  book.style.transition = 'none';
+  book.style.transform = '';
+  book.style.animation = 'none';
+  homeScreen.style.opacity    = '';
+  homeScreen.style.transition  = '';
+  homeScreen.style.pointerEvents = '';
+  homeScreen.style.transform   = '';
+  // Force reflow then restart spin
+  void book.offsetWidth;
+  book.style.animation = 'home-spin 6s linear infinite';
+  goTo('home');
+}
+
+// ══════════════════════════════════════════════════════
+// BLE CONTROLLER (shared across all screens)
+// ══════════════════════════════════════════════════════
+class CardController {
+  constructor() {
+    this.PRIMARY_UUID = "61fc3a9f-b7d0-4d5a-bbdd-d3d640c40da9";
+    this.DFU_UUID     = "1d14d6ee-fd63-4fa1-bfa4-8f47b42119f0";
+    this.CHAR_SETTINGS = "a97c053f-4e45-4bf1-a387-4b89857c8043";
+    this.CHAR_STATUS   = "cafdacdd-0638-4df1-8cf3-2a78aa9d30d2";
+    this.CHAR_PAIR     = "3b50de31-2031-417e-8eb0-ea8468932beb";
+    this.CHAR_FORGET   = "a0a83156-727b-437a-bb94-2cd7f3779de0";
+    this.CARD_COUNT = 7;
+    this.connected = false;
+    this.settingsChar = null;
+    this.pairChar = null;
+    this.forgetChar = null;
+    this.cardAddrs = Array(7).fill(null);
+    this.cardStatus = [];
+    this.onStatusUpdate = null;
+  }
+
+  async connect() {
+    const device = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: "Card" }],
+      optionalServices: [this.PRIMARY_UUID, this.DFU_UUID]
+    });
+    this.device = device;
+    const server = await device.gatt.connect();
+    const svc = await server.getPrimaryService(this.PRIMARY_UUID);
+    this.settingsChar = await svc.getCharacteristic(this.CHAR_SETTINGS);
+    this.imageChar    = await svc.getCharacteristic("332d0b3a-6cc3-444d-9f84-68913665692e");
+    this.pairChar     = await svc.getCharacteristic(this.CHAR_PAIR);
+    this.forgetChar   = await svc.getCharacteristic(this.CHAR_FORGET);
+    const statusChar  = await svc.getCharacteristic(this.CHAR_STATUS);
+    this.statusChar = statusChar;
+    await new Promise(r => setTimeout(r, 2000));
+    const initialStatus = await statusChar.readValue();
+    this.parseStatus(initialStatus);
+    await statusChar.startNotifications();
+    statusChar.addEventListener('characteristicvaluechanged', (e) => {
+      this.parseStatus(e.target.value);
+      if (this.onStatusUpdate) this.onStatusUpdate();
+    });
+    device.addEventListener('gattserverdisconnected', () => {
+      this.connected = false;
+      updateBleIndicators();
+    });
+    this.connected = true;
+  }
+
+  parseStatus(buf) {
+    const nameAddrMap = {};
+    const statusList = [];
+    for (let i = 0; i < this.CARD_COUNT; i++) {
+      const dv = new DataView(buf.buffer, 26 * i);
+      const addr = [];
+      for (let j = 0; j < 6; j++) addr.push(dv.getUint8(j));
+      addr.reverse();
+      const isActive = addr.toString() !== [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF].toString();
+      if (!isActive) continue;
+      const nameBytes = [];
+      for (let j = 7; j < 12; j++) {
+        const c = dv.getUint8(j);
+        if (c !== 0) nameBytes.push(c);
+      }
+      const name = String.fromCharCode(...nameBytes);
+      const slot = dv.getUint16(12, true);
+      const volts = (dv.getUint8(6) * 0.01) + 3;
+      const charging = !!(dv.getUint8(18) & (1 << 1));
+      if (name) {
+        nameAddrMap[name] = addr;
+        statusList.push({ name, addr, slot, volts: volts.toFixed(2), charging });
+      }
+    }
+    const sorted = Object.keys(nameAddrMap).sort((a, b) => {
+      if (a === 'Pr1') return -1;
+      if (b === 'Pr1') return 1;
+      return a.localeCompare(b);
+    });
+    this.cardAddrs = Array(this.CARD_COUNT).fill(null);
+    this.nameAddrMap = nameAddrMap;
+    this.cardStatus = statusList.sort((a,b) => {
+      if (a.name==='Pr1') return -1;
+      if (b.name==='Pr1') return 1;
+      return a.name.localeCompare(b.name);
+    });
+    for (let i = 0; i < sorted.length; i++) {
+      this.cardAddrs[i] = nameAddrMap[sorted[i]];
+    }
+  }
+
+  async pushAllSlots(slotMap) {
+    if (!this.settingsChar) return;
+    const buf = new ArrayBuffer(this.CARD_COUNT * 8);
+    const dv = new DataView(buf);
+    for (let ci = 0; ci < this.CARD_COUNT; ci++) {
+      const skip = slotMap[ci] === null || slotMap[ci] === undefined;
+      // null = skip this card (zero address means firmware ignores it)
+      const addr = (!skip && this.cardAddrs[ci]) ? this.cardAddrs[ci] : [0,0,0,0,0,0];
+      const slot = skip ? 0 : slotMap[ci];
+      for (let ai = 0; ai < 6; ai++) dv.setUint8((ci*8)+ai, addr[5-ai]);
+      dv.setUint16((ci*8)+6, slot, true);
+    }
+    await this.settingsChar.writeValueWithResponse(buf);
+  }
+
+  async pushSlot(cardIndex, slotNum) {
+    const slotMap = Array(this.CARD_COUNT).fill(null);
+    slotMap[cardIndex] = slotNum;
+    await this.pushAllSlots(slotMap);
+  }
+
+  async pairPeripherals() {
+    if (this.pairChar) {
+      const b = new ArrayBuffer(1);
+      new DataView(b).setUint8(0, 0);
+      await this.pairChar.writeValueWithResponse(b);
+    }
+  }
+
+  async forgetPeripherals() {
+    if (this.forgetChar) {
+      const b = new ArrayBuffer(1);
+      new DataView(b).setUint8(0, 0);
+      await this.forgetChar.writeValueWithResponse(b);
+    }
+  }
+
+  async powerOff(currentSettings) {
+    const s = currentSettings.map(c => c ? { ...c, slot: 50000 } : c);
+    await this.pushAllSlots(s.map(c => c ? 50000 : null));
+  }
+
+  // No-op: slot state tracking removed, kept for compatibility
+  resetSlotState() {}
+}
+
+const ble = new CardController();
+ble.onStatusUpdate = () => {
+  updateBleIndicators();
+  renderCtrlCardGrid();
+  // Reset slot state if disconnected so we don't skip updates after reconnect
+  if (!ble.connected) ble.resetSlotState();
+};
+
+// ── BLE indicator updates ──
+function updateBleIndicators() {
+  if (typeof updateChamBle === 'function') updateChamBle();
+  const connected = ble.connected;
+  const text = connected ? 'Cards Connected' : 'Not connected';
+
+  const bleClass = 'ble-cards' + (connected ? ' connected' : '');
+  ['menu-ble-cards','games-ble-cards','bj-ble-cards','cham-ble-cards','ctrl-ble-cards'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = bleClass;
+  });
+
+  // Control connect button
+  document.getElementById('ctrl-btn-connect').textContent = connected ? 'Connected ✓' : 'Connect Cards';
+  document.getElementById('ctrl-btn-connect').disabled = connected;
+}
+
+// ── Card Control: connect button ──
+document.getElementById('ctrl-btn-connect').addEventListener('click', async () => {
+  if (!navigator.bluetooth) {
+    alert('Web Bluetooth not supported. Use Chrome on desktop/Android or Bluefy on iOS.');
+    return;
+  }
+  const btn = document.getElementById('ctrl-btn-connect');
+  btn.textContent = 'Connecting…';
+  btn.disabled = true;
+  try {
+    await ble.connect();
+    updateBleIndicators();
+    renderCtrlCardGrid();
+  } catch(e) {
+    btn.textContent = 'Connect Cards';
+    btn.disabled = false;
+    showToast('err', 'Connection Failed', e.message, 4000);
+    console.error(e);
+  }
+});
+
+// ── Card Control: card grid ──
+function renderCtrlCardGrid() {
+  const grid = document.getElementById('ctrl-card-grid');
+  if (!ble.connected || ble.cardStatus.length === 0) { grid.innerHTML = ''; return; }
+  grid.innerHTML = ble.cardStatus.map(c => `
+    <div class="card-pill active">
+      <div class="card-pill-name">${c.name}</div>
+      <div class="card-pill-slot">Slot ${c.slot}</div>
+      <div class="card-pill-batt">${c.charging ? '⚡' : '🔋'}${c.volts}V</div>
+    </div>
+  `).join('');
+}
+
+// ── Card Control: advanced buttons ──
+document.getElementById('ctrl-btn-poweroff').addEventListener('click', async () => {
+  if (!ble.connected) { alert('Not connected.'); return; }
+  await ble.pushAllSlots(Array(7).fill(50000));
+});
+document.getElementById('ctrl-btn-pair').addEventListener('click', async () => {
+  if (!ble.connected) { alert('Not connected.'); return; }
+  await ble.pairPeripherals();
+});
+document.getElementById('ctrl-btn-unpair').addEventListener('click', async () => {
+  if (!ble.connected) { alert('Not connected.'); return; }
+  await ble.forgetPeripherals();
+});
+
+// ══════════════════════════════════════════════════════
+// IMAGE GENERATION & UPLOAD
+// ══════════════════════════════════════════════════════
+function generateWinnerImage(playerName) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 400; canvas.height = 600;
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+
+  // Black background
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, 400, 600);
+
+  // Yellow border
+  ctx.fillStyle = '#ffff00';
+  ctx.fillRect(0,0,400,10); ctx.fillRect(0,590,400,10);
+  ctx.fillRect(0,0,10,600); ctx.fillRect(390,0,10,600);
+  ctx.fillRect(18,18,364,4); ctx.fillRect(18,578,364,4);
+  ctx.fillRect(18,18,4,564); ctx.fillRect(378,18,4,564);
+
+  // Player name — fit to width
+  ctx.fillStyle = '#ffff00';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Scale font size to fit name
+  let fontSize = 80;
+  ctx.font = `bold ${fontSize}px Georgia, serif`;
+  while(ctx.measureText(playerName).width > 340 && fontSize > 30) {
+    fontSize -= 4;
+    ctx.font = `bold ${fontSize}px Georgia, serif`;
+  }
+  ctx.fillText(playerName, 200, 200);
+
+  // WINS!
+  ctx.fillStyle = '#ffff00';
+  ctx.font = 'bold 110px Georgia, serif';
+  ctx.fillText('WINS!', 200, 340);
+
+  // Star
+  ctx.fillStyle = '#ffff00';
+  const sx=200, sy=470, sr=28;
+  ctx.beginPath();
+  for(let i=0;i<10;i++){
+    const angle=(i*Math.PI)/5-Math.PI/2;
+    const r=i%2===0?sr:sr*0.45;
+    const x=sx+r*Math.cos(angle), y=sy+r*Math.sin(angle);
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.closePath(); ctx.fill();
+
+  return canvas;
+}
+
+function generateResultImage(type) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 400; canvas.height = 600;
+  const ctx = canvas.getContext('2d');
+
+  // E-ink supports exactly: black, white, red, green, blue, yellow
+  const configs = {
+    winner:   { bg: '#000000', border: '#ffff00', text: '#ffff00', lines: [{ t: 'YOU', y: 210, size: 100 }, { t: 'WIN!', y: 330, size: 120 }] },
+    loser:    { bg: '#000000', border: '#ff0000', text: '#ffffff',  lines: [{ t: 'DEALER', y: 190, size: 80 }, { t: 'WINS', y: 310, size: 120 }] },
+    push:     { bg: '#000000', border: '#ffffff', text: '#ffffff',  lines: [{ t: 'PUSH', y: 220, size: 110 }, { t: 'TIE!', y: 350, size: 100 }] },
+    cardback: { bg: '#000000', border: '#ffffff', text: '#ffffff',  lines: [] }
+  };
+
+  const c = configs[type];
+
+  // Background
+  ctx.fillStyle = c.bg;
+  ctx.fillRect(0, 0, 400, 600);
+
+  // Outer border (skip for cardback — it draws its own clean border)
+  if (type !== 'cardback') {
+    ctx.strokeStyle = c.border;
+    ctx.lineWidth = 8;
+    ctx.strokeRect(12, 12, 376, 576);
+    ctx.lineWidth = 2;
+    ctx.strokeRect(24, 24, 352, 552);
+  }
+
+  // Text lines
+  ctx.fillStyle = c.text;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (const line of c.lines) {
+    ctx.font = `bold ${line.size}px Georgia, serif`;
+    ctx.fillText(line.t, 200, line.y);
+  }
+
+  // Card back pattern
+  if (type === 'cardback') {
+    // ── Baroque scrollwork — pure black/white only, no anti-aliasing grey ──
+    const W=400, H=600, cx=200, cy=300;
+
+    // Disable smoothing to avoid grey anti-alias pixels
+    ctx.imageSmoothingEnabled = false;
+
+    // Pure black background
+    ctx.fillStyle='#000000'; ctx.fillRect(0,0,W,H);
+
+    // White outer border — filled rectangles only (no strokes for border)
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(0,0,W,10); ctx.fillRect(0,H-10,W,10);
+    ctx.fillRect(0,0,10,H); ctx.fillRect(W-10,0,10,H);
+    // Inner border line — use fillRect strips instead of strokeRect
+    ctx.fillRect(16,16,W-32,2); ctx.fillRect(16,H-18,W-32,2);
+    ctx.fillRect(16,16,2,H-32); ctx.fillRect(W-18,16,2,H-32);
+
+    // All drawing uses minimum 1.5px strokes — no sub-pixel lines
+    function aLeaf(x,y,angle,size,curl) {
+      const c=curl||0.5, s=size;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
+      ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(0,0);
+      ctx.bezierCurveTo(-s*c,-s*0.3,-s*(c+0.15),-s*0.7,-s*0.1,-s*0.95);
+      ctx.bezierCurveTo(s*0.1,-s*1.05,s*0.25,-s*0.9,s*0.2,-s*0.7);
+      ctx.bezierCurveTo(s*0.15,-s*0.5,s*0.05,-s*0.35,0,0); ctx.stroke();
+      ctx.lineWidth=1.2;
+      ctx.beginPath(); ctx.moveTo(-s*0.1,-s*0.95);
+      ctx.bezierCurveTo(-s*0.3,-s*1.1,-s*0.5,-s*1.0,-s*0.45,-s*0.8);
+      ctx.bezierCurveTo(-s*0.4,-s*0.65,-s*0.2,-s*0.6,-s*0.1,-s*0.7); ctx.stroke();
+      ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(0,-s*0.2);
+      ctx.bezierCurveTo(s*0.15,-s*0.35,s*0.3,-s*0.25,s*0.25,-s*0.1);
+      ctx.bezierCurveTo(s*0.2,0,s*0.08,0.05,0,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-s*0.2,-s*0.45);
+      ctx.bezierCurveTo(-s*0.4,-s*0.5,-s*0.5,-s*0.35,-s*0.38,-s*0.25);
+      ctx.bezierCurveTo(-s*0.28,-s*0.18,-s*0.15,-s*0.22,-s*0.15,-s*0.35); ctx.stroke();
+      ctx.restore();
+    }
+
+    function sUnit(x,y,angle,size) {
+      ctx.save(); ctx.translate(x,y); ctx.rotate(angle);
+      ctx.strokeStyle='#ffffff'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.moveTo(0,-size*0.5);
+      ctx.bezierCurveTo(size*0.4,-size*0.3,size*0.4,size*0.3,0,size*0.5); ctx.stroke();
+      aLeaf(size*0.15,-size*0.1,-0.4,size*0.55);
+      aLeaf(-size*0.15,size*0.1,Math.PI+0.4,size*0.55);
+      ctx.restore();
+    }
+
+    // Main scroll tile grid
+    const margin=28, tileW=48, tileH=48;
+    for(let row=0; row*tileH<H-margin*1.5; row++) {
+      for(let col=0; col*tileW<W-margin*1.5; col++) {
+        const x=margin+col*tileW+(row%2===0?0:tileW*0.5);
+        const y=margin+row*tileH;
+        if(x<margin-4||x>W-margin+4||y<margin-4||y>H-margin+4) continue;
+        const dx=x-cx, dy=y-cy;
+        if(Math.abs(dx)<85&&Math.abs(dy)<85) continue;
+        sUnit(x,y,(row+col)%2===0?0:Math.PI/2,tileW*0.9);
+      }
+    }
+
+    // Diamond
+    const dH=72, dW=46;
+    ctx.strokeStyle='#ffffff'; ctx.lineWidth=2.5;
+    ctx.beginPath(); ctx.moveTo(cx,cy-dH); ctx.lineTo(cx+dW,cy); ctx.lineTo(cx,cy+dH); ctx.lineTo(cx-dW,cy); ctx.closePath(); ctx.stroke();
+    ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(cx,cy-dH+8); ctx.lineTo(cx+dW-8,cy); ctx.lineTo(cx,cy+dH-8); ctx.lineTo(cx-dW+8,cy); ctx.closePath(); ctx.stroke();
+    [[cx,cy-dH,-Math.PI/2],[cx+dW,cy,0],[cx,cy+dH,Math.PI/2],[cx-dW,cy,Math.PI]].forEach(([x,y,a])=>aLeaf(x,y,a,12,0.4));
+
+    // TOME vertical
+    const letters=['T','O','M','E'], sp=(dH*2-28)/4, startY=cy-(3*sp/2);
+    ctx.fillStyle='#ffffff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='bold 20px Georgia, serif';
+    letters.forEach((l,i)=>ctx.fillText(l,cx,startY+i*sp));
+    [[cx,startY-sp*0.55],[cx,startY+4*sp-sp*0.45]].forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill();});
+
+    return canvas;
+  }
+
+  // Draw a shape instead of emoji
+  const sx = 200, sy = 470, sr = 28;
+  ctx.fillStyle = type === 'winner' ? '#ffff00' : type === 'loser' ? '#ff0000' : '#ffffff';
+  if (type === 'winner') {
+    // Draw a star using polygon
+    ctx.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const angle = (i * Math.PI) / 5 - Math.PI / 2;
+      const r = i % 2 === 0 ? sr : sr * 0.45;
+      const x = sx + r * Math.cos(angle);
+      const y = sy + r * Math.sin(angle);
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+  } else if (type === 'loser') {
+    // Original skull
+    const skx = sx, sky = sy, skr = sr;
+    ctx.fillStyle = '#ffffff';
+    // Cranium
+    ctx.beginPath();
+    ctx.arc(skx, sky - skr * 0.3, skr * 0.85, 0, Math.PI * 2);
+    ctx.fill();
+    // Jaw
+    ctx.fillRect(skx - skr * 0.55, sky + skr * 0.3, skr * 1.1, skr * 0.55);
+    // Eye sockets
+    ctx.fillStyle = '#000000';
+    ctx.beginPath(); ctx.ellipse(skx - skr * 0.28, sky - skr * 0.35, skr * 0.22, skr * 0.26, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(skx + skr * 0.28, sky - skr * 0.35, skr * 0.22, skr * 0.26, 0, 0, Math.PI * 2); ctx.fill();
+    // Nose
+    ctx.beginPath();
+    ctx.moveTo(skx, sky + skr * 0.05);
+    ctx.lineTo(skx - skr * 0.1, sky + skr * 0.25); ctx.lineTo(skx + skr * 0.1, sky + skr * 0.25);
+    ctx.closePath(); ctx.fill();
+    // Teeth
+    const toothW = skr * 0.18, toothH = skr * 0.28;
+    [-0.38, -0.13, 0.13, 0.38].forEach(tx => {
+      ctx.fillRect(skx + tx * skr - toothW * 0.5, sky + skr * 0.36, toothW, toothH);
+    });
+  } else {
+    // Draw a diamond
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - sr);
+    ctx.lineTo(sx + sr * 0.7, sy);
+    ctx.lineTo(sx, sy + sr);
+    ctx.lineTo(sx - sr * 0.7, sy);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  return canvas;
+}
+
+async function testPushSlot() {
+  const slot = parseInt(document.getElementById('test-slot-input').value);
+  const status = document.getElementById('test-slot-status');
+  if (!ble.connected) { status.textContent = 'Not connected — connect cards first'; return; }
+  if (isNaN(slot) || slot < 0 || slot > 999) { status.textContent = 'Enter a valid slot number (0–999)'; return; }
+  status.textContent = 'Pushing slot ' + slot + ' to all 7 cards…';
+  try {
+    await ble.pushAllSlots(Array(7).fill(slot));
+    status.textContent = '✓ Slot ' + slot + ' pushed to all cards';
+  } catch(e) {
+    status.textContent = '✗ Failed: ' + e.message;
+  }
+}
+
+async function uploadPreset(type) {
+  if (!ble.connected) { alert('Connect cards first in Card Control.'); return; }
+
+  const slotMap = { winner: 60, loser: 61, push: 62, cardback: 63 };
+  const types = type === 'all' ? ['winner','loser','push','cardback'] : [type];
+
+  const progId = type === 'all' ? 'prog-all' : `prog-${type}`;
+  if (type !== 'all' && !document.getElementById(progId)) return;
+  const log = document.getElementById('ctrl-upload-log');
+
+  // Stop notifications for the whole upload session
+  if (ble.statusChar) { try { await ble.statusChar.stopNotifications(); } catch(e) {} }
+
+  try {
+    for (let ti = 0; ti < types.length; ti++) {
+      const t = types[ti];
+      const slot = slotMap[t];
+      log.textContent = `Generating ${t} image…`;
+      const canvas = generateResultImage(t);
+
+      log.textContent = `Uploading ${t} to slot ${slot}…`;
+      document.getElementById(progId).style.width = '20%';
+
+      try {
+        await uploadImageToSlot(canvas, slot, (p) => {
+          document.getElementById(progId).style.width = (20 + p * 70) + '%';
+        });
+        document.getElementById(progId).style.width = '100%';
+        log.textContent = `${t} uploaded to slot ${slot} ✓`;
+      } catch(e) {
+        log.textContent = `Upload failed: ${e.message}`;
+        document.getElementById(progId).style.width = '0%';
+      }
+    }
+    if (type === 'all') log.textContent = 'All result images uploaded ✓';
+  } finally {
+    if (ble.statusChar) { try { await ble.statusChar.startNotifications(); } catch(e) {} }
+  }
+}
+
+// Convert canvas to Nick's raw 3bpp format (no PNG, no colour ambiguity)
+async function convertCanvasToRaw(canvas) {
+  const ctx = canvas.getContext('2d');
+  const imagedata = ctx.getImageData(0, 0, 400, 600).data;
+  const buffer_raw = new ArrayBuffer(90000 + 32);
+  const buffer = new DataView(buffer_raw);
+
+  function bpp3(arr, pixel) {
+    const r = arr[(pixel*4) + 0] != 0 ? 0b100 : 0;
+    const g = arr[(pixel*4) + 1] != 0 ? 0b010 : 0;
+    const b = arr[(pixel*4) + 2] != 0 ? 0b001 : 0;
+    return r | g | b;
+  }
+
+  for(let pi=0, bi=0; bi<90000; pi+=8, bi+=3) {
+    let buf24 = 0;
+    for(let psi=7; psi>=0; psi--) {
+      buf24 |= bpp3(imagedata, pi+psi);
+      if(psi != 0) buf24 = buf24 << 3;
+    }
+    buffer.setUint8(bi+0, (buf24 & 0x0000FF) >> 0);
+    buffer.setUint8(bi+1, (buf24 & 0x00FF00) >> 8);
+    buffer.setUint8(bi+2, (buf24 & 0xFF0000) >> 16);
+  }
+
+  // SHA-256 hash appended at end
+  const hash_ab = await window.crypto.subtle.digest("SHA-256", new DataView(buffer_raw, 0, 90000));
+  const hash = new Uint8Array(hash_ab);
+  for(let i=0; i<32; i++) buffer.setUint8(90000+i, hash[i]);
+
+  return buffer;
+}
+
+async function quantizeCanvasToPalette(canvas) {
+  // Snap every pixel to the nearest e-ink palette color before encoding as PNG
+  // This prevents grey anti-alias pixels from mapping to yellow on the e-ink display
+  const palette = [
+    [0,   0,   0  ], // black
+    [255, 255, 255], // white
+    [255, 0,   0  ], // red
+    [0,   255, 0  ], // green
+    [0,   0,   255], // blue
+    [255, 255, 0  ], // yellow
+  ];
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i], g = data[i+1], b = data[i+2];
+    let minDist = Infinity, best = palette[0];
+    for (const p of palette) {
+      const dist = (r-p[0])**2 + (g-p[1])**2 + (b-p[2])**2;
+      if (dist < minDist) { minDist = dist; best = p; }
+    }
+    data[i] = best[0]; data[i+1] = best[1]; data[i+2] = best[2]; data[i+3] = 255;
+  }
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+// -- Solid black canvas for e-ink full-refresh flush --
+function makeSolidCanvas(color) {
+  const cv = document.createElement('canvas');
+  cv.width = 400; cv.height = 600;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = color || '#000000';
+  ctx.fillRect(0, 0, 400, 600);
+  return cv;
+}
+
+// -- Silent reconnect -- re-establishes GATT without prompting the user --
+async function bleReconnect() {
+  console.log('[BLE] reconnecting...');
+  if (ble.statusChar) { try { await ble.statusChar.stopNotifications(); } catch(e) {} }
+  const server = await ble.device.gatt.connect();
+  const svc = await server.getPrimaryService(ble.PRIMARY_UUID);
+  ble.settingsChar = await svc.getCharacteristic(ble.CHAR_SETTINGS);
+  ble.imageChar    = await svc.getCharacteristic('332d0b3a-6cc3-444d-9f84-68913665692e');
+  ble.pairChar     = await svc.getCharacteristic(ble.CHAR_PAIR);
+  ble.forgetChar   = await svc.getCharacteristic(ble.CHAR_FORGET);
+  ble.statusChar   = await svc.getCharacteristic(ble.CHAR_STATUS);
+  ble.connected = true;
+  await new Promise(r => setTimeout(r, 800)); // let stack settle
+  console.log('[BLE] reconnected');
+}
+
+async function uploadImageToSlot(canvas, slotNum, onProgress) {
+  if (!ble.device)    throw new Error('No device -- connect first');
+  if (!ble.imageChar) throw new Error('Image characteristic not ready -- reconnect');
+  console.log(`[UPLOAD] slot ${slotNum}`);
+
+  const CHUNK_DELAY_MS   = 30;
+  const RETRY_ATTEMPTS   = 4;   // one attempt may trigger a reconnect
+  const RETRY_BACKOFF_MS = 200;
+  const BREATH_EVERY     = 40;
+  const BREATH_MS        = 150;
+
+  await quantizeCanvasToPalette(canvas); // snap anti-alias pixels to exact e-ink palette before encoding
+  const rawBuf      = await convertCanvasToRaw(canvas);
+  const DATA_LEN    = 234;
+  const totalChunks = Math.ceil(rawBuf.byteLength / DATA_LEN);
+  const addr        = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF];
+
+  for (let ci = 0; ci < totalChunks; ci++) {
+    const cdLen     = Math.min(rawBuf.byteLength - ci * DATA_LEN, DATA_LEN);
+    const chunkData = new DataView(rawBuf.buffer, DATA_LEN * ci, cdLen);
+
+    const pkt = new ArrayBuffer(244);
+    const pdv = new DataView(pkt);
+    for (let i = 0; i < 6; i++) pdv.setUint8(i, addr[5-i]);
+    pdv.setUint16(6, slotNum, true);
+    pdv.setUint16(8, ci, true);
+    for (let i = 0; i < chunkData.byteLength; i++) pdv.setUint8(10 + i, chunkData.getUint8(i));
+
+    // Write with retry + automatic silent reconnect on disconnect
+    for (let attempt = 0; attempt < RETRY_ATTEMPTS; attempt++) {
+      try {
+        await ble.imageChar.writeValueWithResponse(pkt);
+        break; // success
+      } catch (err) {
+        const isDisconnect = err.message && (
+          err.message.includes('disconnected') ||
+          err.message.includes('connect') ||
+          err.message.includes('GATT')
+        );
+        const isLast = attempt === RETRY_ATTEMPTS - 1;
+        console.warn(`[UPLOAD] slot ${slotNum} chunk ${ci} attempt ${attempt+1}: ${err.message}`);
+        if (isLast) throw new Error(`Slot ${slotNum} chunk ${ci} failed after ${RETRY_ATTEMPTS} attempts: ${err.message}`);
+        if (isDisconnect) {
+          await bleReconnect(); // reconnect then retry immediately
+        } else {
+          await new Promise(r => setTimeout(r, RETRY_BACKOFF_MS * (attempt + 1)));
+        }
+      }
+    }
+
+    await new Promise(r => setTimeout(r, CHUNK_DELAY_MS));
+
+    if ((ci + 1) % BREATH_EVERY === 0 && ci < totalChunks - 1) {
+      await new Promise(r => setTimeout(r, BREATH_MS));
+    }
+
+    if (onProgress) onProgress(ci / totalChunks);
+  }
+  if (onProgress) onProgress(1);
+  console.log(`[UPLOAD] done slot ${slotNum}`);
+}
+
+function cardToSlot(rank, suit, deck = 0) {
+  const rankIndex = {'A':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'9':8,'10':9,'J':10,'Q':11,'K':12}[rank];
+  const suitIndex = {'S':0,'H':1,'D':2,'C':3}[suit];
+  return (deck * 100) + (suitIndex * 13) + rankIndex;
+}
+
+// ══════════════════════════════════════════════════════
+// DECK
+// ══════════════════════════════════════════════════════
+const SUITS = ['S','H','D','C'];
+const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RED_SUITS = new Set(['H','D']);
+
+function buildDeck() {
+  const d = [];
+  for (const s of SUITS) for (const r of RANKS) d.push({rank:r,suit:s});
+  return d;
+}
+function shuffle(d) {
+  const a = [...d];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function cardValue(r) {
+  if (['J','Q','K'].includes(r)) return 10;
+  if (r==='A') return 11;
+  return parseInt(r);
+}
+function handScore(cards) {
+  let total = cards.reduce((s,c)=>s+cardValue(c.rank),0);
+  let aces = cards.filter(c=>c.rank==='A').length;
+  while (total>21&&aces>0){total-=10;aces--;}
+  return total;
+}
+function isBlackjack(cards){return cards.length===2&&handScore(cards)===21;}
+
+// ══════════════════════════════════════════════════════
+// BLACKJACK STATE
+// ══════════════════════════════════════════════════════
+let gameDeck = [];
+let dealerHand = [];
+let dealerRevealed = false;
+let players = [];
+let gamePhase = 'idle';
+let isDealing = false;
+let physicalSlots = Array(7).fill(null).map(()=>({owner:null,card:null}));
+let nextPhysSlot = 0;
+
+function resetPhysicalSlots(){
+  physicalSlots = Array(7).fill(null).map(()=>({owner:null,card:null}));
+  nextPhysSlot = 0;
+}
+
+// ── UI helpers ──
+function suitSym(s){return{S:'♠',H:'♥',D:'♦',C:'♣'}[s];}
+function suitClass(s){return RED_SUITS.has(s)?'red-card':'black-card';}
+function cardHTML(card,hidden=false){
+  if(hidden) return `<div class="playing-card hidden-card"></div>`;
+  return `<div class="playing-card ${suitClass(card.suit)}"><span class="rank">${card.rank}</span><span class="suit">${suitSym(card.suit)}</span></div>`;
+}
+function setBleLog(msg,type=''){
+  const el=document.getElementById('ble-log');
+  if(!el)return;
+  el.className='ble-push-log'+(type?' '+type:'');
+  el.textContent=msg;
+}
+
+// ── Physical card tracker ──
+function renderPhysicalCards(){
+  const row=document.getElementById('physical-cards-row');
+  if(!row)return;
+  row.innerHTML='';
+  for(let i=0;i<7;i++){
+    const slot=physicalSlots[i];
+    const wrap=document.createElement('div');
+    wrap.className='phys-card-slot';
+    const label=document.createElement('div');
+    label.className='phys-label';
+    label.textContent=`Pr${i+1}`;
+    wrap.appendChild(label);
+    if(slot&&slot.card){
+      const cardEl=document.createElement('div');
+      cardEl.className=`playing-card ${suitClass(slot.card.suit)}`;
+      cardEl.innerHTML=`<span class="rank">${slot.card.rank}</span><span class="suit">${suitSym(slot.card.suit)}</span>`;
+      wrap.appendChild(cardEl);
+      const ownerTag=document.createElement('div');
+      ownerTag.className='owner-tag';
+      ownerTag.textContent=slot.owner||'';
+      wrap.appendChild(ownerTag);
+    } else {
+      const logo=document.createElement('div');
+      logo.className='logo-card';
+      logo.innerHTML=`<span class="logo-suit">♠</span><span>TOME</span>`;
+      wrap.appendChild(logo);
+    }
+    row.appendChild(wrap);
+  }
+}
+
+// ── Render dealer ──
+function renderDealer(){
+  const el=document.getElementById('dealer-hand');
+  if(!el||dealerHand.length===0){if(el)el.innerHTML='';return;}
+  let html='';
+  for(let i=0;i<dealerHand.length;i++) html+=cardHTML(dealerHand[i],i===1&&!dealerRevealed);
+  const score=dealerRevealed?handScore(dealerHand):handScore([dealerHand[0]]);
+  const sc=score>21?'bust':(dealerRevealed&&isBlackjack(dealerHand)?'blackjack':'');
+  html+=`<span class="hand-score ${sc}">${dealerRevealed?score:score+'?'}</span>`;
+  el.innerHTML=html;
+}
+
+// ── Render players ──
+function renderPlayers(){
+  const grid=document.getElementById('players-grid');
+  const active=players.filter(p=>p.enabled);
+  grid.className='players-grid'+(active.length===1?' one-player':'');
+  grid.innerHTML='';
+  for(const p of active){
+    const score=handScore(p.hand);
+    const bj=isBlackjack(p.hand);
+    const bust=score>21;
+    const isMyTurn=gamePhase==='playing'&&!p.stood&&!bust&&!bj;
+    let sectionClass='player-section';
+    if(isMyTurn)sectionClass+=' active-turn';
+    else if(bust)sectionClass+=' bust-section';
+    else if(p.result==='win'||p.result==='bj')sectionClass+=' winner-section';
+    let badgeClass='',badgeText='';
+    if(gamePhase==='done'){
+      const map={bj:['badge-bj','Blackjack!'],win:['badge-win','Win'],lose:['badge-lose','Lose'],push:['badge-push','Push'],bust:['badge-bust','Bust']};
+      if(map[p.result])[badgeClass,badgeText]=map[p.result];
+    } else {
+      if(bj){badgeClass='badge-bj';badgeText='Blackjack!';}
+      else if(bust){badgeClass='badge-bust';badgeText='Bust';}
+      else if(p.stood){badgeClass='badge-stand';badgeText='Stand';}
+      else if(isMyTurn){badgeClass='badge-turn';badgeText='Your Turn';}
+    }
+    const physCount=physicalSlots.filter(s=>s&&s.owner===p.name).length;
+    const overflowCount=p.hand.length-physCount;
+    let cardsHTML=p.hand.map(c=>cardHTML(c)).join('');
+    const scoreClass=bust?'bust':bj?'blackjack':'';
+    cardsHTML+=`<span class="hand-score ${scoreClass}">${score}</span>`;
+    if(overflowCount>0) cardsHTML+=`<span style="font-size:0.75rem;color:var(--text-muted);font-style:italic;margin-left:4px;">(+${overflowCount} on screen)</span>`;
+    let actionsHTML='';
+    if(gamePhase==='playing'&&!p.stood&&!bust&&!bj){
+      actionsHTML=`<div class="action-btns"><button class="bj-btn bj-btn-gold" onclick="playerHit('${p.id}')">Hit</button><button class="bj-btn bj-btn-red" onclick="playerStand('${p.id}')">Stand</button></div>`;
+    }
+    grid.innerHTML+=`<div class="${sectionClass}"><div class="player-name-row"><span class="player-name">${p.name}</span>${badgeText?`<span class="player-status-badge ${badgeClass}">${badgeText}</span>`:''}</div><div class="hand-display">${cardsHTML}</div>${actionsHTML}</div>`;
+  }
+}
+
+// ── BLE physical card push (hit cards only) ──
+async function assignPhysicalCard(owner, card){
+  if(nextPhysSlot < 7){
+    physicalSlots[nextPhysSlot] = {owner, card};
+    const targetSlot = nextPhysSlot;
+    nextPhysSlot++;
+    if(ble.connected){
+      try{
+        const imgSlot = cardToSlot(card.rank, card.suit);
+        setBleLog('Pushing '+card.rank+suitSym(card.suit)+' → Pr'+(targetSlot+1),'pushing');
+        // Only push target card, null = skip all others
+        const slotMap = Array(7).fill(null);
+        slotMap[targetSlot] = imgSlot;
+        await ble.pushAllSlots(slotMap);
+        setBleLog('Pr'+(targetSlot+1)+' updated ✓','pushing');
+        setTimeout(()=>setBleLog('—'),1500);
+      } catch(e){ setBleLog('Push failed: '+e.message,'error'); }
+    }
+  }
+  renderPhysicalCards();
+}
+
+// ── Game logic ──
+
+// Pair definitions — slots must match what's uploaded via Image Formatter
+const DG_PAIRS = [
+  { id:0, slot:DG_SLOT.sword, label:'Pair 1', matched:false },
+  { id:1, slot:DG_SLOT.jewel, label:'Pair 2', matched:false },
+  { id:2, slot:DG_SLOT.idol,  label:'Pair 3', matched:false },
+];
+
+
+function dgInit() {
+  document.getElementById('dg-home').style.display   = 'flex';
+  document.getElementById('dg-game').style.display   = 'none';
+  document.getElementById('dg-result').style.display = 'none';
+}
+
+function dgGoHome() {
+  document.getElementById('dg-home').style.display   = 'flex';
+  document.getElementById('dg-game').style.display   = 'none';
+  document.getElementById('dg-result').style.display = 'none';
+}
+
+function dgShuffle(arr) {
+  for (let i=arr.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+async function dgNewRound() {
+  dgPairs  = 0;
+  dgBusy   = false;
+
+  // Pick random curse variant
+  dgCurse = DG_CURSES[Math.floor(Math.random() * DG_CURSES.length)];
+
+  // Reset pair matched state
+  DG_PAIRS.forEach(p => p.matched = false);
+
+  // Build shuffled card assignments for 7 positions
+  // 3 pairs (2 cards each) + 1 curse = 7 cards
+  const assignments = [
+    { pairId:0, slot:DG_SLOT.sword, label:'Pair 1', type:'pair' },
+    { pairId:0, slot:DG_SLOT.sword, label:'Pair 1', type:'pair' },
+    { pairId:1, slot:DG_SLOT.jewel, label:'Pair 2', type:'pair' },
+    { pairId:1, slot:DG_SLOT.jewel, label:'Pair 2', type:'pair' },
+    { pairId:2, slot:DG_SLOT.idol,  label:'Pair 3', type:'pair' },
+    { pairId:2, slot:DG_SLOT.idol,  label:'Pair 3', type:'pair' },
+    { pairId:-1, slot:dgCurse.slot, label:dgCurse.label, type:'curse' },
+  ];
+  dgCards = dgShuffle(assignments);
+
+  // Reset dots
+  [0,1,2].forEach(i => {
+    const d = document.getElementById('dg-dot-' + i);
+    if (d) { d.style.background='transparent'; d.style.boxShadow='none'; }
+  });
+
+  document.getElementById('dg-status').textContent = 'Cards dealt face-down — 7 cards on table';
+
+  // Render dealer view
+  dgRenderGrid();
+  dgRenderPairButtons();
+
+  // Push all cards to back slot — face down
+  if (ble.connected) {
+    await ble.pushAllSlots(Array(7).fill(63));          // clear any previous
+    await new Promise(r => setTimeout(r, 800));
+    await ble.pushAllSlots(Array(7).fill(DG_SLOT.back)); // dungeon back
+  }
+
+  document.getElementById('dg-home').style.display   = 'none';
+  document.getElementById('dg-result').style.display = 'none';
+  document.getElementById('dg-game').style.display   = 'flex';
+}
+
+function dgRenderGrid() {
+  const grid = document.getElementById('dg-card-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  dgCards.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.id = 'dg-pos-' + i;
+
+    const isCurse   = card.type === 'curse';
+    const isMatched = card.type === 'pair' && DG_PAIRS[card.pairId].matched;
+
+    let borderColor = isCurse ? 'rgba(220,40,40,0.6)' : isMatched ? '#c8901a' : 'rgba(200,144,26,0.2)';
+
+    el.style.cssText = [
+      'aspect-ratio:2/3',
+      'border-radius:8px',
+      'border:2px solid ' + borderColor,
+      'overflow:hidden',
+      'position:relative',
+      'display:flex',
+      'flex-direction:column',
+      'background:#0a0804',
+      'transition:all 0.3s',
+      isMatched ? 'box-shadow:0 0 10px rgba(200,144,26,0.3)' : '',
+      isCurse   ? 'box-shadow:0 0 10px rgba(220,40,40,0.2)'  : '',
+    ].join(';');
+
+    // Try to load thumbnail from localStorage
+    const thumbKey = 'slot_thumb_' + card.slot;
+    const thumbData = localStorage.getItem(thumbKey);
+
+    if (thumbData) {
+      // Show actual card image
+      const img = document.createElement('img');
+      img.src = thumbData;
+      img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+      el.appendChild(img);
+
+      // Overlay: card number + curse warning
+      const overlay = document.createElement('div');
+      overlay.style.cssText = [
+        'position:absolute',
+        'bottom:0',
+        'left:0',
+        'right:0',
+        'padding:4px 4px 3px',
+        'display:flex',
+        'justify-content:space-between',
+        'align-items:center',
+        'background:rgba(0,0,0,0.65)',
+      ].join(';');
+
+      const num = document.createElement('span');
+      num.style.cssText = 'font-size:9px;font-weight:700;color:rgba(255,255,255,0.6);';
+      num.textContent = '#' + (i+1);
+
+      const flag = document.createElement('span');
+      flag.style.cssText = 'font-size:10px;';
+      flag.textContent = isCurse ? '☠' : isMatched ? '✓' : '';
+
+      overlay.appendChild(num);
+      overlay.appendChild(flag);
+      el.appendChild(overlay);
+    } else {
+      // No thumbnail — show slot number and label
+      el.style.cssText += ';justify-content:center;align-items:center;gap:4px;padding:6px;';
+
+      const num = document.createElement('div');
+      num.style.cssText = 'font-size:9px;font-weight:700;color:rgba(200,144,26,0.4);';
+      num.textContent = '#' + (i+1);
+
+      const lbl = document.createElement('div');
+      lbl.style.cssText = 'font-size:10px;font-weight:600;color:rgba(245,230,200,0.35);text-align:center;line-height:1.3;';
+      lbl.textContent = card.label;
+
+      const slotNum = document.createElement('div');
+      slotNum.style.cssText = 'font-size:8px;color:rgba(245,230,200,0.15);';
+      slotNum.textContent = 'slot ' + card.slot;
+
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:8px;color:rgba(90,150,255,0.4);text-align:center;margin-top:2px;';
+      hint.textContent = 'upload via Formatter';
+
+      el.appendChild(num);
+      el.appendChild(lbl);
+      el.appendChild(slotNum);
+      el.appendChild(hint);
+    }
+
+    grid.appendChild(el);
+  });
+}
+
+function dgRenderPairButtons() {
+  const container = document.getElementById('dg-pair-btns');
+  if (!container) return;
+  container.innerHTML = '';
+  DG_PAIRS.forEach((pair, i) => {
+    const btn = document.createElement('button');
+    btn.id = 'dg-pair-btn-' + i;
+    const matched = pair.matched;
+    btn.style.cssText = [
+      'width:100%',
+      'padding:13px',
+      matched ? 'background:rgba(200,144,26,0.05)' : 'background:rgba(200,144,26,0.08)',
+      matched ? 'border:1.5px solid rgba(200,144,26,0.15)' : 'border:1.5px solid rgba(200,144,26,0.3)',
+      'border-radius:10px',
+      matched ? 'color:rgba(200,144,26,0.3)' : 'color:#c8901a',
+      'font-family:inherit',
+      'font-size:14px',
+      'font-weight:700',
+      matched ? 'cursor:default' : 'cursor:pointer',
+      'transition:all 0.3s',
+      'text-align:left',
+      'display:flex',
+      'align-items:center',
+      'justify-content:space-between',
+    ].join(';');
+
+    btn.innerHTML = `<span>${pair.label}</span><span>${matched ? '✓ Matched' : 'Tap when found'}</span>`;
+    if (!matched) btn.onclick = () => dgPairMatched(i);
+    container.appendChild(btn);
+  });
+}
+
+async function dgPairMatched(pairId) {
+  if (dgBusy) return;
+  const pair = DG_PAIRS[pairId];
+  if (pair.matched) return;
+  dgBusy = true;
+
+  pair.matched = true;
+  dgPairs++;
+
+  // Light up dot
+  const dot = document.getElementById('dg-dot-' + (dgPairs - 1));
+  if (dot) { dot.style.background='#c8901a'; dot.style.boxShadow='0 0 8px rgba(200,144,26,0.5)'; }
+
+  // Push the relic slot to both cards that have this pair
+  if (ble.connected) {
+    const slotMap = Array(7).fill(null);
+    dgCards.forEach((card, i) => {
+      if (card.pairId === pairId) slotMap[i] = pair.slot;
+    });
+    await ble.pushAllSlots(slotMap);
+  }
+
+  // Update status
+  document.getElementById('dg-status').textContent = pair.label + ' matched — ' + dgPairs + '/3 pairs found';
+
+  // Refresh UI
+  dgRenderGrid();
+  dgRenderPairButtons();
+
+  dgBusy = false;
+
+  if (dgPairs === 3) {
+    await new Promise(r => setTimeout(r, 800));
+    dgTriggerWin();
+  }
+}
+
+async function dgCurseFlipped() {
+  dgBusy = true;
+  // Reveal all cards at their actual slots
+  if (ble.connected) {
+    const slotMap = dgCards.map(c => c.slot);
+    await ble.pushAllSlots(slotMap);
+  }
+  dgTriggerLose();
+}
+
+function dgTriggerWin() {
+  document.getElementById('dg-result-icon').textContent  = '💎';
+  document.getElementById('dg-result-title').textContent = 'Escaped!';
+  document.getElementById('dg-result-title').style.color = '#c8901a';
+  document.getElementById('dg-result-sub').textContent   = 'All three pairs found. The dungeon is conquered.';
+  document.getElementById('dg-result-pairs').innerHTML   =
+    DG_PAIRS.map(p =>
+      `<div style="background:rgba(200,144,26,0.08);border:0.5px solid rgba(200,144,26,0.25);border-radius:8px;padding:8px 12px;font-size:13px;color:rgba(245,230,200,0.7);">${p.label} ✓</div>`
+    ).join('');
+  document.getElementById('dg-game').style.display   = 'none';
+  document.getElementById('dg-result').style.display = 'flex';
+}
+
+function dgTriggerLose() {
+  document.getElementById('dg-result-icon').textContent  = dgCurse ? dgCurse.icon : '☠';
+  document.getElementById('dg-result-title').textContent = 'The Dungeon Collapses!';
+  document.getElementById('dg-result-title').style.color = '#ff4444';
+  document.getElementById('dg-result-sub').textContent   =
+    (dgCurse ? dgCurse.label : 'The Curse') + ' was revealed. The dungeon seals forever.';
+  const matched = DG_PAIRS.filter(p => p.matched);
+  document.getElementById('dg-result-pairs').innerHTML =
+    (matched.length === 0
+      ? '<div style="color:rgba(245,230,200,0.25);font-size:13px;">No pairs found</div>'
+      : matched.map(p =>
+          `<div style="background:rgba(200,144,26,0.08);border:0.5px solid rgba(200,144,26,0.2);border-radius:8px;padding:8px 12px;font-size:13px;color:rgba(245,230,200,0.6);">${p.label} ✓</div>`
+        ).join('')) +
+    `<div style="background:rgba(220,40,40,0.08);border:0.5px solid rgba(220,40,40,0.25);border-radius:8px;padding:8px 12px;font-size:13px;color:#ff6666;">${dgCurse ? dgCurse.icon : '☠'} ${dgCurse ? dgCurse.label : 'The Curse'} ✗</div>`;
+  document.getElementById('dg-game').style.display   = 'none';
+  document.getElementById('dg-result').style.display = 'flex';
+}
+
+
+// ── END CURSED DUNGEON ──
+
+
+// ══════════════════════════════════════════════════════
+//  IMAGE FORMATTER
+// ══════════════════════════════════════════════════════
+const FMT_NAMED = [
+  {s:60,n:'BJ Win'},{s:61,n:'BJ Lose'},{s:62,n:'BJ Push'},{s:63,n:'Card Back'},
+  {s:70,n:'Chameleon'},{s:125,n:'King'},{s:126,n:'Knight'},{s:127,n:'Mage'},
+  {s:128,n:'Princess'},{s:129,n:'Dragon'},{s:130,n:'Herald'},{s:131,n:'Traitor'},
+  {s:132,n:'Herald Back'},{s:140,n:'Vault Back'},{s:141,n:'Sword'},{s:142,n:'Jewel'},
+  {s:143,n:'Idol'},{s:144,n:'Spider'},{s:145,n:'Snake'},{s:146,n:'Skull'},
+];
+const FMT_PAL = [
+  {h:'#000000',n:'Black',r:[0,0,0]},
+  {h:'#ffffff',n:'White',r:[255,255,255]},
+  {h:'#ff0000',n:'Red',r:[255,0,0]},
+  {h:'#00ff00',n:'Green',r:[0,255,0]},
+  {h:'#0000ff',n:'Blue',r:[0,0,255]},
+  {h:'#ffff00',n:'Yellow',r:[255,255,0]},
+];
+let fmtActivePal=[0,1,2,3,4,5], fmtFit='cover', fmtDith='nearest';
+let fmtSrc=null, fmtWork=null, fmtQuant=null;
+let fmtInited=false;
+
+function fmtInit() {
+  // Palette and named slots are hardcoded in HTML — just update slot label
+  fmtUpdateSlot();
+  fmtInited = true;
+}
+
+function fmtUpdateSlot() {
+  const slotEl = document.getElementById('fmt-slot');
+  const nameEl = document.getElementById('fmt-slot-name');
+  const btnEl  = document.getElementById('fmt-btn-slot');
+  if (!slotEl || !nameEl || !btnEl) return; // guard: screen may not be visible yet
+  const n = parseInt(slotEl.value);
+  const found = FMT_NAMED.find(x => x.s === n);
+  nameEl.textContent = found ? found.n : 'Custom slot';
+  btnEl.textContent  = n;
+}
+
+function fmtTogPal(i) {
+  const x=fmtActivePal.indexOf(i);
+  if(x>=0&&fmtActivePal.length>2){fmtActivePal.splice(x,1);document.getElementById('fmt-sw'+i).classList.remove('on');}
+  else if(x<0){fmtActivePal.push(i);document.getElementById('fmt-sw'+i).classList.add('on');}
+  fmtReQ();
+}
+
+function fmtSetFit(m,btn){
+  fmtFit=m;
+  document.querySelectorAll('.fmt-fit').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); fmtRender();
+}
+function fmtSetDith(m,btn){
+  fmtDith=m;
+  document.querySelectorAll('.fmt-db').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on'); fmtReQ();
+}
+
+function fmtUpd() {
+  document.getElementById('fmt-vx').textContent=document.getElementById('fmt-sx').value;
+  document.getElementById('fmt-vy').textContent=document.getElementById('fmt-sy').value;
+  document.getElementById('fmt-vsc').textContent=document.getElementById('fmt-ssc').value;
+  document.getElementById('fmt-vbr').textContent=document.getElementById('fmt-sbr').value;
+  document.getElementById('fmt-vco').textContent=document.getElementById('fmt-sco').value;
+  document.getElementById('fmt-vsa').textContent=document.getElementById('fmt-ssa').value;
+  fmtRender();
+}
+
+function fmtReset() {
+  ['fmt-sx','fmt-sy','fmt-sbr','fmt-sco'].forEach(id=>document.getElementById(id).value=0);
+  document.getElementById('fmt-ssc').value=100;
+  document.getElementById('fmt-ssa').value=100;
+  document.getElementById('fmt-sthr').value=0;
+  fmtUpd();
+}
+
+async function fmtLoadURL() {
+  fmtInit(); // ensure screen is initialised
+  const url = document.getElementById('fmt-url').value.trim();
+  if (!url) { showToast('err','No URL','Paste an image URL first',2500); return; }
+
+  const btn = document.getElementById('fmt-load-btn');
+  btn.textContent = 'Loading…';
+  btn.style.opacity = '0.5';
+  btn.style.pointerEvents = 'none';
+
+  const restore = () => {
+    btn.textContent = 'Load';
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  };
+
+  // Try loading directly first (works if server allows CORS)
+  const tryLoad = (src) => new Promise((res,rej) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => res(img);
+    img.onerror = rej;
+    img.src = src;
+  });
+
+  try {
+    // 1. Try direct
+    try {
+      const img = await tryLoad(url);
+      fmtSetSrc(img); restore(); return;
+    } catch(e) {}
+
+    // 2. Try corsproxy.io
+    try {
+      const img = await tryLoad('https://corsproxy.io/?' + encodeURIComponent(url));
+      fmtSetSrc(img); restore(); return;
+    } catch(e) {}
+
+    // 3. Try allorigins
+    try {
+      const img = await tryLoad('https://api.allorigins.win/raw?url=' + encodeURIComponent(url));
+      fmtSetSrc(img); restore(); return;
+    } catch(e) {}
+
+    // All failed
+    restore();
+    showToast('err','Could not load','URL blocked by CORS — use Browse to upload the file directly',5000);
+    document.getElementById('fmt-url-hint').style.display = 'block';
+
+  } catch(e) {
+    restore();
+    showToast('err','Load failed', e.message, 4000);
+  }
+}
+
+function fmtLoadFile(file) {
+  if (!file) return;
+  fmtInit(); // ensure screen is initialised even if navigated directly
+  const r = new FileReader();
+  r.onload = e => {
+    const img = new Image();
+    img.onload = () => { fmtSetSrc(img); showToast('ok','Image loaded', file.name, 2500); };
+    img.src = e.target.result;
+  };
+  r.readAsDataURL(file);
+}
+
+function fmtSetSrc(img) {
+  fmtSrc = img;
+  const ph = document.getElementById('fmt-ph');
+  if (ph) ph.style.display = 'none';
+  fmtRender();
+}
+
+function fmtRender() {
+  if(!fmtSrc) return;
+  const x=+document.getElementById('fmt-sx').value;
+  const y=+document.getElementById('fmt-sy').value;
+  const scale=+document.getElementById('fmt-ssc').value/100;
+  const br=+document.getElementById('fmt-sbr').value;
+  const co=+document.getElementById('fmt-sco').value;
+  const sa=+document.getElementById('fmt-ssa').value/100;
+
+  fmtWork=document.createElement('canvas'); fmtWork.width=400; fmtWork.height=600;
+  const ctx=fmtWork.getContext('2d');
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,400,600);
+  const iw=fmtSrc.naturalWidth, ih=fmtSrc.naturalHeight;
+  let dw,dh,dx,dy;
+  if(fmtFit==='stretch'){dw=400*scale;dh=600*scale;}
+  else if(fmtFit==='contain'){const r=Math.min(400/iw,600/ih);dw=iw*r*scale;dh=ih*r*scale;}
+  else{const r=Math.max(400/iw,600/ih);dw=iw*r*scale;dh=ih*r*scale;}
+  dx=(400-dw)/2+x*3; dy=(600-dh)/2+y*3;
+  ctx.filter=`brightness(${1+br/100}) contrast(${1+co/100}) saturate(${sa})`;
+  ctx.drawImage(fmtSrc,dx,dy,dw,dh);
+  ctx.filter='none';
+
+  const rawCv=document.getElementById('fmt-cv-raw');
+  rawCv.getContext('2d').drawImage(fmtWork,0,0,200,300);
+  fmtReQ();
+}
+
+function fmtNearest(r,g,b) {
+  const thr=+document.getElementById('fmt-sthr').value;
+  let best=null,bd=Infinity;
+  for(const i of fmtActivePal){
+    const c=FMT_PAL[i].r;
+    const d=(r-c[0]+thr)**2+(g-c[1])**2+(b-c[2])**2;
+    if(d<bd){bd=d;best=c;}
+  }
+  return best;
+}
+
+const FMT_BAYER4=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const FMT_BAYER8=[[0,32,8,40,2,34,10,42],[48,16,56,24,50,18,58,26],[12,44,4,36,14,46,6,38],[60,28,52,20,62,30,54,22],[3,35,11,43,1,33,9,41],[51,19,59,27,49,17,57,25],[15,47,7,39,13,45,5,37],[63,31,55,23,61,29,53,21]];
+
+function fmtReQ() {
+  if(!fmtWork) return;
+  document.getElementById('fmt-vthr').textContent=document.getElementById('fmt-sthr').value;
+  const src=fmtWork.getContext('2d').getImageData(0,0,400,600);
+  const w=400,h=600,d=src.data;
+  const out=new Uint8ClampedArray(d.length);
+
+  if(fmtDith==='fs') {
+    const buf=new Float32Array(d.length);
+    for(let i=0;i<d.length;i++) buf[i]=d[i];
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      const r=Math.max(0,Math.min(255,buf[i])),g=Math.max(0,Math.min(255,buf[i+1])),b=Math.max(0,Math.min(255,buf[i+2]));
+      const c=fmtNearest(r,g,b);
+      out[i]=c[0];out[i+1]=c[1];out[i+2]=c[2];out[i+3]=255;
+      const er=r-c[0],eg=g-c[1],eb=b-c[2];
+      const sp=[[1,0,7/16],[-1,1,3/16],[0,1,5/16],[1,1,1/16]];
+      for(const [dx2,dy2,f] of sp){const nx=x+dx2,ny=y+dy2;if(nx>=0&&nx<w&&ny<h){const ni=(ny*w+nx)*4;buf[ni]+=er*f;buf[ni+1]+=eg*f;buf[ni+2]+=eb*f;}}
+    }
+  } else if(fmtDith==='ordered') {
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+      const i=(y*w+x)*4,dt=(FMT_BAYER4[y%4][x%4]/16-0.5)*40;
+      const c=fmtNearest(Math.max(0,Math.min(255,d[i]+dt)),Math.max(0,Math.min(255,d[i+1]+dt)),Math.max(0,Math.min(255,d[i+2]+dt)));
+      out[i]=c[0];out[i+1]=c[1];out[i+2]=c[2];out[i+3]=255;
+    }
+  } else if(fmtDith==='bayer') {
+    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+      const i=(y*w+x)*4,dt=(FMT_BAYER8[y%8][x%8]/64-0.5)*60;
+      const c=fmtNearest(Math.max(0,Math.min(255,d[i]+dt)),Math.max(0,Math.min(255,d[i+1]+dt)),Math.max(0,Math.min(255,d[i+2]+dt)));
+      out[i]=c[0];out[i+1]=c[1];out[i+2]=c[2];out[i+3]=255;
+    }
+  } else {
+    for(let i=0;i<d.length;i+=4){const c=fmtNearest(d[i],d[i+1],d[i+2]);out[i]=c[0];out[i+1]=c[1];out[i+2]=c[2];out[i+3]=255;}
+  }
+
+  fmtQuant=document.createElement('canvas'); fmtQuant.width=400; fmtQuant.height=600;
+  const qc=fmtQuant.getContext('2d'); const qd=qc.createImageData(400,600);
+  qd.data.set(out); qc.putImageData(qd,0,0);
+  document.getElementById('fmt-cv-q').getContext('2d').drawImage(fmtQuant,0,0,200,300);
+
+  // Pixel stats
+  const counts={}; FMT_PAL.forEach(c=>counts[c.n]=0);
+  for(let i=0;i<out.length;i+=4){
+    const r=out[i],g=out[i+1],b=out[i+2];
+    const f=FMT_PAL.find(c=>c.r[0]===r&&c.r[1]===g&&c.r[2]===b);
+    if(f) counts[f.n]++;
+  }
+  const total=w*h;
+  const sr=document.getElementById('fmt-stats');
+  if (!sr) return;
+  sr.style.display='flex';
+  sr.innerHTML=FMT_PAL.map(c=>{
+    const pct=Math.round(counts[c.n]/total*100);
+    if(!pct) return '';
+    return `<div class="fmt-px-chip"><div style="width:10px;height:10px;border-radius:2px;background:${c.h};flex-shrink:0;${c.h==='#ffffff'?'box-shadow:0 0 0 1px rgba(255,255,255,0.3);':''}"></div>${pct}%</div>`;
+  }).join('');
+
+  // ── Compatibility check — how much did pixels shift? ──
+  const srcData2 = fmtWork.getContext('2d').getImageData(0,0,400,600).data;
+  let bigShift = 0;
+  for (let pi=0;pi<out.length;pi+=4) {
+    const dr=Math.abs(srcData2[pi]-out[pi]);
+    const dg=Math.abs(srcData2[pi+1]-out[pi+1]);
+    const db=Math.abs(srcData2[pi+2]-out[pi+2]);
+    if (dr+dg+db > 180) bigShift++;
+  }
+  const shiftPct = (bigShift / (400*600) * 100).toFixed(1);
+  const compatEl = document.getElementById('fmt-compat');
+  if (compatEl) {
+    if (bigShift < 400*600*0.04) {
+      compatEl.innerHTML = '✓ Looks good — image will display well on the card';
+      compatEl.style.cssText += 'color:#44cc66;background:rgba(34,170,85,0.08);border-color:rgba(34,170,85,0.2);display:block;';
+    } else if (bigShift < 400*600*0.2) {
+      compatEl.innerHTML = '⚠ ' + shiftPct + '% of pixels shifted — try Floyd-Steinberg dithering for better results';
+      compatEl.style.cssText += 'color:#ffaa44;background:rgba(255,160,40,0.08);border-color:rgba(255,160,40,0.2);display:block;';
+    } else {
+      compatEl.innerHTML = '✗ ' + shiftPct + '% of pixels shifted dramatically — card may look poor. Boost contrast or use a simpler image.';
+      compatEl.style.cssText += 'color:#ff6666;background:rgba(220,40,40,0.08);border-color:rgba(220,40,40,0.2);display:block;';
+    }
+  }
+
+  // Enable upload button if BLE connected
+  const btn=document.getElementById('fmt-upload-btn');
+  if(btn){
+    if(ble.connected){btn.style.opacity='1';btn.style.pointerEvents='auto';}
+    else{btn.style.opacity='0.4';btn.style.pointerEvents='none';}
+  }
+}
+
+async function fmtDoUpload() {
+  if (!ble.connected || !fmtQuant) {
+    showToast('err','Not ready','Connect cards and load an image first',3000); return;
+  }
+  const slot = parseInt(document.getElementById('fmt-slot').value);
+  if (isNaN(slot)||slot<0||slot>999) {
+    showToast('err','Bad slot','Enter a valid slot number 0-999',3000); return;
+  }
+
+  const btn  = document.getElementById('fmt-upload-btn');
+  const wrap = document.getElementById('fmt-prog-wrap');
+  btn.style.opacity = '0.4'; btn.style.pointerEvents = 'none';
+  wrap.style.display = 'block';
+  document.getElementById('fmt-prog-label').textContent = 'Uploading to slot ' + slot + '...';
+  document.getElementById('fmt-prog-sub').textContent = 'Preparing...';
+
+  if (ble.statusChar) { try { await ble.statusChar.stopNotifications(); } catch(e) {} }
+
+  try {
+    // Use the shared uploadImageToSlot — has built-in GATT reconnect on disconnect
+    await uploadImageToSlot(fmtQuant, slot, function(p) {
+      const pct = (p * 100).toFixed(1);
+      document.getElementById('fmt-prog-fill').style.width = pct + '%';
+      document.getElementById('fmt-prog-sub').textContent = pct + '%';
+    });
+
+    const slotLabel = (FMT_NAMED.find(function(x){return x.s===slot;}) || {n:'Custom slot'}).n;
+    document.getElementById('fmt-prog-label').textContent = 'Uploaded to slot ' + slot;
+    document.getElementById('fmt-prog-sub').textContent = slotLabel;
+    showToast('ok','Uploaded','Image saved to slot ' + slot, 3000);
+
+    // Save thumbnail to localStorage so dealer views can show card previews
+    try {
+      const thumb = document.createElement('canvas');
+      thumb.width = 80; thumb.height = 120;
+      thumb.getContext('2d').drawImage(fmtQuant, 0, 0, 80, 120);
+      localStorage.setItem('slot_thumb_' + slot, thumb.toDataURL('image/jpeg', 0.6));
+    } catch(e) { console.warn('Thumbnail save failed', e); }
+
+  } catch(e) {
+    document.getElementById('fmt-prog-label').textContent = 'Upload failed';
+    document.getElementById('fmt-prog-sub').textContent = e.message;
+    showToast('err','Upload failed', e.message, 5000);
+  } finally {
+    btn.style.opacity = '1'; btn.style.pointerEvents = 'auto';
+    await new Promise(function(r){setTimeout(r,100);});
+    if (ble.statusChar) { try { await ble.statusChar.startNotifications(); } catch(e) {} }
+  }
+}
+// ── END IMAGE FORMATTER ──
+
+</script>
+</body>
+</html>
